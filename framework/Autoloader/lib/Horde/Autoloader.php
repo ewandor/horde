@@ -14,6 +14,29 @@ class Horde_Autoloader
 {
     private $_mappers = array();
     private $_callbacks = array();
+    private $_cache;
+
+    public function __construct()
+    {
+        if (extension_loaded('apc')) {
+            $this->_cache = apc_fetch('horde_autoloader_map');
+        } elseif (extension_loaded('xcache')) {
+            $this->_cache = xcache_get('horde_autoloader_map');
+        } elseif (extension_loaded('eaccelerator')) {
+            $this->_cache = eaccelerator_get('horde_autoloader_map');
+        }
+    }
+
+    public function __destruct()
+    {
+        if (extension_loaded('apc')) {
+            apc_store('horde_autoloader_map', $this->_cache);
+        } elseif (extension_loaded('xcache')) {
+            xcache_set('horde_autoloader_map', $this->_cache);
+        } elseif (extension_loaded('eaccelerator')) {
+            eaccelerator_put('horde_autoloader_map', $this->_cache);
+        }
+    }
 
     public function loadClass($className)
     {
@@ -62,13 +85,18 @@ class Horde_Autoloader
      */
     public function mapToPath($className)
     {
+        if (isset($this->_cache[$className])) {
+            return $this->_cache[$className];
+        }
         foreach ($this->_mappers as $mapper) {
             if ($path = $mapper->mapToPath($className)) {
                 if ($this->_fileExists($path)) {
+                    $this->_cache[$className] = $path;
                     return $path;
                 }
             }
         }
+        $this->_cache[$className] = false;
     }
 
     protected function _include($path)

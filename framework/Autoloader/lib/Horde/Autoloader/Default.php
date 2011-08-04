@@ -1,6 +1,6 @@
 <?php
 /**
- * Horde_Autoloader_default
+ * Horde_Autoloader_Default
  *
  * Default autoloader definition that simply uses the include path with default
  * class path mappers.
@@ -18,8 +18,11 @@ class Horde_Autoloader_Default extends Horde_Autoloader
 {
     public function __construct()
     {
+        parent::__construct();
         foreach (array_reverse(explode(PATH_SEPARATOR, get_include_path())) as $path) {
-            if ($path == '.') { continue; }
+            if ($path == '.') {
+                continue;
+            }
             $path = realpath($path);
             if ($path) {
                 $this->addClassPathMapper(new Horde_Autoloader_ClassPathMapper_Default($path));
