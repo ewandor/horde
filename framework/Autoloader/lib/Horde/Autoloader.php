@@ -24,6 +24,9 @@ class Horde_Autoloader
             $this->_cache = xcache_get('horde_autoloader_map');
         } elseif (extension_loaded('eaccelerator')) {
             $this->_cache = eaccelerator_get('horde_autoloader_map');
+        } elseif (($tempdir = sys_get_temp_dir()) &&
+                  is_readable($tempdir . '/horde_autoloader_map')) {
+            $this->_cache = @json_decode(file_get_contents($tempdir . '/horde_autoloader_map'), true);
         }
     }
 
@@ -35,6 +38,11 @@ class Horde_Autoloader
             xcache_set('horde_autoloader_map', $this->_cache);
         } elseif (extension_loaded('eaccelerator')) {
             eaccelerator_put('horde_autoloader_map', $this->_cache);
+        } elseif (($tempdir = sys_get_temp_dir()) &&
+                  (is_writable($tempdir . '/horde_autoloader_map') ||
+                   (!file_exists($tempdir . '/horde_autoloader_map') &&
+                    is_writable($tempdir)))) {
+            file_put_contents($tempdir . '/horde_autoloader_map', json_encode($this->_cache));
         }
     }
 
