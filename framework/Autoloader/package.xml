@@ -70,7 +70,21 @@
    <pearinstaller>
     <min>1.7.0</min>
    </pearinstaller>
+   <extension>
+    <name>json</name>
+   </extension>
   </required>
+  <optional>
+   <extension>
+    <name>apc</name>
+   </extension>
+   <extension>
+    <name>eaccelerator</name>
+   </extension>
+   <extension>
+    <name>xcache</name>
+   </extension>
+  </optional>
  </dependencies>
  <phprelease>
   <filelist>
