@@ -2908,13 +2908,13 @@ class Kronolith
                 break;
             
             case 'Imap':
-                //TODO: Remplacer par des options
+                //TODO: Remplace by options
                 $params['hostspec'] = 'localhost';
-                $params['pass']     = 'ID0t\'8h6';
+                $params['pass']     = '*******';
                 $params['port']     = '993';
                 $params['secure']   = 'ssl';
-                $params['username'] = 'ggentile';
-                $params['folder']   = 'INBOX.Agenda'; 
+                $params['username'] = '*******';
+                $params['folder']   = 'INBOX.Calendar'; 
                 break;
 
             case 'Ical':
