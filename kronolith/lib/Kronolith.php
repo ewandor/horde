@@ -2906,6 +2906,16 @@ class Kronolith
             case 'Kolab':
                 $params['storage'] = $GLOBALS['injector']->getInstance('Horde_Kolab_Storage');
                 break;
+            
+            case 'Imap':
+                //TODO: Remplacer par des options
+                $params['hostspec'] = 'localhost';
+                $params['pass']     = 'ID0t\'8h6';
+                $params['port']     = '993';
+                $params['secure']   = 'ssl';
+                $params['username'] = 'ggentile';
+                $params['folder']   = 'Agenda'; 
+                break;
 
             case 'Ical':
             case 'Mock':
