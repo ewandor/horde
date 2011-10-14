@@ -15,32 +15,32 @@ class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
 {
     /**
      * Our Imap client objects
-     * 
+     *
      * @var Horde_Imap_Client
      */
     protected $_imap = array();
-    
+
     /**
      * Internal cache of Kronolith_Event_Imap. eventID/UID is key
      *
      * @var array
      */
     private $_events_cache;
-    
+
     /**
      * Indicates if we have synchronized this folder
      *
      * @var boolean
      */
     private $_synchronized;
-    
+
     /**
      * The handler to parse xml to Kolab Events
-     * 
+     *
      * @var Horde_Kolab_Format
      */
     private $_kolabFormat;
-    
+
     /**
      * Reset internal variable on share change
      */
@@ -49,35 +49,35 @@ class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
         $this->_events_cache = array();
         $this->_synchronized = false;
     }
-    
+
     /**
      * Attempts to open an Imap Kolab-Xml folder.
      */
     public function initialize()
     {
-        $this->$imap_config = array(
+        $imap_config = array(
               'hostspec' => empty($this->_params['hostspec']) ? null : $this->_params['hostspec'],
               'password' => empty($this->_params['pass']) ? null : $this->_params['pass'],
               'port' => empty($this->_params['port']) ? null : $this->_params['port'],
               'secure' => ($this->_params['secure'] == 'none') ? null : $this->_params['secure'],
-              'username' => $user
+              'username' => $this->_params['username']
             );
-            
-        $this->_imap = Horde_Imap_Client::factory('Socket', $imap_config);        
+
+        $this->_imap = Horde_Imap_Client::factory('Socket', $imap_config);
         $this->reset();
-        
+
         if (!isset($this->_kolabFormat)) {
             $factory = new Horde_Kolab_Format_Factory();
             $this->_kolabFormat = $factory->create('XML', 'event');
         }
-        
+
         $this->calendar = $this->_params['folder'];
     }
-    
+
     /**
-     * 
+     *
      * Returns the imap connection and creates it if doesn't exist
-     * 
+     *
      * @return Horde_Imap_Client_Socket
      */
     protected function  getImap()
@@ -91,28 +91,28 @@ class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
               'secure' => ($this->_params['secure'] == 'none') ? null : $this->_params['secure'],
               'username' => $user
             );
-            
+
             $this->_imap = Horde_Imap_Client::factory('Socket', $imap_config);
         }
-        
+
         return $this->_imap;
     }
-    
-    
+
     /**
      * Retrieves All uids
-     * 
+     *
      * @return array The message ids.
-     */   
+     */
     protected function _getUids()
     {
         $search_query = new Horde_Imap_Client_Search_Query();
         $search_query->flag('DELETED', false);
+        //$search_query->uid ();
         $uidsearch = $this->getImap()->search($this->_params['folder'], $search_query);
         $uids = $uidsearch['match'];
-        return $uids->ids;
+        return $uids;
     }
-    
+
     /**
      * Retrieves a bodypart for the given message ID and mime part ID.
      *
@@ -133,9 +133,9 @@ class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
             array('ids' => new Horde_Imap_Client_Ids($uid))
         );
 
-        return $ret[$uid]->getBodyPart($id, true);
+        return quoted_printable_decode($ret[$uid]->getBodyPart($id));
     }
-    
+
     // We delay initial synchronization to the first use
     // so multiple calendars don't add to the total latency.
     // This function must be called before all internal driver functions
@@ -144,20 +144,20 @@ class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
         if ($this->_synchronized && !$force) {
             return;
         }
-        
+
         $this->_events_cache = array();
-        foreach ($this->_getUids() as $uid => $mail)
+        foreach ($this->_getUids() as $uid)
         {
             $xml = $this->_fetchBodypart($uid, 2);
-            $xmlObject = new SimpleXMLElement($xml);
-            $event = $this->_kolabFormat->load($xmlObject);
-            $this->_events_cache[$event['uid']] = new Kronolith_Event_Kolab($this, $event);
+            if (strlen($xml) > 0) {
+		            $event = $this->_kolabFormat->load($xml);
+                $this->_events_cache[$event['uid']] = new Kronolith_Event_Kolab($this, $event);
+            }
         }
 
         $this->_synchronized = true;
     }
-    
-    
+
     /**
      * Lists all events in the time range, optionally restricting results to
      * only events with alarms.
@@ -187,7 +187,7 @@ class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
                                $hideExceptions = false, $fetchTags = false)
     {
         $this->synchronize();
-        
+
         if (empty($startDate)) {
             $startDate = new Horde_Date(array('mday' => 1,
                                               'month' => 1,
