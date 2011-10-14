@@ -2914,7 +2914,7 @@ class Kronolith
                 $params['port']     = '993';
                 $params['secure']   = 'ssl';
                 $params['username'] = 'ggentile';
-                $params['folder']   = 'Agenda'; 
+                $params['folder']   = 'INBOX.Agenda'; 
                 break;
 
             case 'Ical':
