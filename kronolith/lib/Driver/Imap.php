@@ -11,7 +11,7 @@
  * @author  Guillaume Gentile <ggentile@dorfsvald.net>
  * @package Kronolith
  */
-class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
+class Kronolith_Driver_Imap extends Kronolith_Driver
 {
     /**
      * Our Imap client objects
@@ -26,6 +26,22 @@ class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
      * @var array
      */
     private $_events_cache;
+    
+    /**
+    * Internal cache of mails uids. eventID/UID corresponding to the mail is key
+    * 
+    * @var array
+    */
+    private $_uids_cache;
+
+    /**
+     * The class name of the event object to instantiate.
+     *
+     * Can be overwritten by sub-classes.
+     *
+     * @var string
+     */
+    protected $_eventClass = 'Kronolith_Event_Imap';
 
     /**
      * Indicates if we have synchronized this folder
@@ -47,6 +63,7 @@ class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
     public function reset()
     {
         $this->_events_cache = array();
+        $this->_uids_cache = array();
         $this->_synchronized = false;
     }
 
@@ -61,7 +78,7 @@ class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
               'port' => empty($this->_params['port']) ? null : $this->_params['port'],
               'secure' => ($this->_params['secure'] == 'none') ? null : $this->_params['secure'],
               'username' => $this->_params['username']
-            );
+        );
 
         $this->_imap = Horde_Imap_Client::factory('Socket', $imap_config);
         $this->reset();
@@ -146,12 +163,14 @@ class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
         }
 
         $this->_events_cache = array();
+        $this->_uids_cache = array();
         foreach ($this->_getUids() as $uid)
         {
             $xml = $this->_fetchBodypart($uid, 2);
             if (strlen($xml) > 0) {
-		            $event = $this->_kolabFormat->load($xml);
-                $this->_events_cache[$event['uid']] = new Kronolith_Event_Kolab($this, $event);
+                $event = $this->_kolabFormat->load($xml);
+                $this->_events_cache[$event['uid']] = new Kronolith_Event_Imap($this, $event);
+                $this->_uids_cache[$event['uid']] = $uid;
             }
         }
 
@@ -181,10 +200,10 @@ class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
      * @throws Kronolith_Exception
      */
     public function listEvents(Horde_Date $startDate = null,
-                               Horde_Date $endDate = null,
-                               $showRecurrence = false, $hasAlarm = false,
-                               $json = false, $coverDates = true,
-                               $hideExceptions = false, $fetchTags = false)
+    Horde_Date $endDate = null,
+    $showRecurrence = false, $hasAlarm = false,
+    $json = false, $coverDates = true,
+    $hideExceptions = false, $fetchTags = false)
     {
         $this->synchronize();
 
@@ -204,50 +223,50 @@ class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
         if (!($endDate instanceOf Horde_Date)) {
             $endDate = new Horde_Date($endDate);
         }
-        
+
         $startDate = clone $startDate;
         $startDate->hour = $startDate->min = $startDate->sec = 0;
         $endDate = clone $endDate;
         $endDate->hour = 23;
         $endDate->min = $endDate->sec = 59;
-        
+
         $events = array();
         foreach($this->_events_cache as $event) {
             if ($hasAlarm && !$event->alarm) {
                 continue;
             }
-            
+
             /* Ignore events out of the period. */
             if (
-                /* Starts after the period. */
-                $event->start->compareDateTime($endDate) > 0 ||
-                /* End before the period and doesn't recur. */
-                (!$event->recurs() &&
-                 $event->end->compareDateTime($startDate) < 0) ||
-                /* Recurs and ... */
-                ($event->recurs() &&
-                  /* ... has a recurrence end before the period. */
-                  ($event->recurrence->hasRecurEnd() &&
-                   $event->recurrence->recurEnd->compareDateTime($startDate) < 0))) {
+            /* Starts after the period. */
+            $event->start->compareDateTime($endDate) > 0 ||
+            /* End before the period and doesn't recur. */
+            (!$event->recurs() &&
+            $event->end->compareDateTime($startDate) < 0) ||
+            /* Recurs and ... */
+            ($event->recurs() &&
+            /* ... has a recurrence end before the period. */
+            ($event->recurrence->hasRecurEnd() &&
+            $event->recurrence->recurEnd->compareDateTime($startDate) < 0))) {
                 continue;
             }
-            
+
             Kronolith::addEvents($events, $event, $startDate, $endDate,
-                                 $showRecurrence, $json, $coverDates);
+            $showRecurrence, $json, $coverDates);
         }
-        
+
         return $events;
     }
-    
+
     /**
      * List all alarms occuring after a given date
-     * 
+     *
      * @param Horde_Date $date Begin date
-     * 
-     * @param bool $fullevent 
-     * 
+     *
+     * @param bool $fullevent
+     *
      * @return array
-     * 
+     *
      * @throws Kronolith_Exception
      */
     public function listAlarms($date, $fullevent = false)
@@ -261,7 +280,7 @@ class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
                 $start = new Horde_Date($event->start);
                 $start->min -= $event->alarm;
                 if ($start->compareDateTime($date) <= 0 &&
-                    $date->compareDateTime($event->end) <= -1) {
+                $date->compareDateTime($event->end) <= -1) {
                     $events[] = $fullevent ? $event : $eventId;
                 }
             } else {
@@ -278,7 +297,7 @@ class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
                                                 'min' => $event->end->min,
                                                 'sec' => $event->end->sec));
                     if ($start->compareDateTime($date) <= 0 &&
-                        $date->compareDateTime($end) <= -1) {
+                    $date->compareDateTime($end) <= -1) {
                         if ($fullevent) {
                             $event->start = $start;
                             $event->end = $end;
@@ -308,39 +327,39 @@ class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
     public function exists($uid, $calendar_id = null)
     {
         /*
-        // Log error if someone uses this function in an unsupported way
-        if ($calendar_id != $this->calendar) {
-            Horde::logMessage(sprintf("Kolab::exists called for calendar %s. Currently active is %s.", $calendar_id, $this->calendar), 'ERR');
-            throw new Kronolith_Exception(sprintf("Kolab::exists called for calendar %s. Currently active is %s.", $calendar_id, $this->calendar));
-        }
+         // Log error if someone uses this function in an unsupported way
+         if ($calendar_id != $this->calendar) {
+         Horde::logMessage(sprintf("Kolab::exists called for calendar %s. Currently active is %s.", $calendar_id, $this->calendar), 'ERR');
+         throw new Kronolith_Exception(sprintf("Kolab::exists called for calendar %s. Currently active is %s.", $calendar_id, $this->calendar));
+         }
 
+         $result = $this->synchronize();
+
+         if ($this->_data->objectIdExists($uid)) {
+         return $uid;
+         }
+
+         return false;*/
         $result = $this->synchronize();
 
-        if ($this->_data->objectIdExists($uid)) {
-            return $uid;
-        }
-
-        return false;*/
-        $result = $this->synchronize();
-        
         return array_key_exists($uis,$this->_events_cache)? $uid : false ;
     }
 
     /**
-     * 
+     *
      * Returns the event identified by $eventId or a new Event if none precised
-     * 
-     * @param string $eventId 
-     * 
-     * @return Kronolith_Event_Kolab
-     * 
+     *
+     * @param string $eventId
+     *
+     * @return Kronolith_Event_Imap
+     *
      * @throws Kronolith_Exception
      * @throws Horde_Exception_NotFound
      */
     public function getEvent($eventId = null)
     {
         if (!strlen($eventId)) {
-            return new Kronolith_Event_Kolab($this);
+            return new Kronolith_Event_Imap($this);
         }
 
         $result = $this->synchronize();
@@ -351,4 +370,262 @@ class Kronolith_Driver_Imap extends Kronolith_Driver_Sql
 
         throw new Horde_Exception_NotFound(sprintf(_("Event not found: %s"), $eventId));
     }
+
+    /**
+     * Get an event or events with the given UID value.
+     *
+     * @param string $uid The UID to match
+     * @param array $calendars A restricted array of calendar ids to search
+     * @param boolean $getAll Return all matching events? If this is false,
+     * an error will be returned if more than one event is found.
+     *
+     * @return Kronolith_Event
+     * @throws Kronolith_Exception
+     * @throws Horde_Exception_NotFound
+     */
+    public function getByUID($uid, $calendars = null, $getAll = false)
+    {
+       
+        $this->synchronize();
+
+        if (!array_key_exists($uid, $this->_events_cache)) {
+            continue;
+        }
+
+        // Ok, found event
+        $event = $this->_events_cache[$uid];
+
+        if ($getAll) {
+            $events = array();
+            $events[] = $event;
+            return $events;
+        } else {
+            return $event;
+        }
+        throw new Horde_Exception_NotFound(sprintf(_("Event not found: %s"), $uid));
+    }
+
+    /**
+     * Updates an existing event in the backend.
+     *
+     * @param Kronolith_Event $event  The event to save.
+     *
+     * @return string  The event id.
+     * @throws Horde_Mime_Exception
+     */
+    protected function _updateEvent(Kronolith_Event $event)
+    {
+        return $this->_saveEvent($event, true);
+    }
+
+    /**
+     * Adds an event to the backend.
+     *
+     * @param Kronolith_Event $event  The event to save.
+     *
+     * @return string  The event id.
+     * @throws Horde_Mime_Exception
+     */
+    protected function _addEvent(Kronolith_Event $event)
+    {
+        return $this->_saveEvent($event, false);
+    }
+
+    /**
+     * Saves an event in the backend.
+     *
+     * @param Kronolith_Event $event  The event to save.
+     *
+     * @return string  The event id.
+     * @throws Horde_Mime_Exception
+     */
+    protected function _saveEvent($event, $edit)
+    {
+        $this->synchronize();
+
+        $action = $edit
+            ? array('action' => 'modify')
+            : array('action' => 'add');
+
+        if (!$event->uid) {
+            $event->uid = strval(new Horde_Support_Uuid());
+        }
+
+        if (!$edit) {
+            $this->getImap()->append($this->_params['folder'], $this->generateMail($event));
+        } 
+        else {
+            $this->getImap()->store($this->_params['folder'], array(
+                'add' => array('\\deleted'),
+                'ids' => new Horde_Imap_Client_Ids($this->_uids_cache[$event->uid])
+            ));
+            $this->getImap()->expunge($this->_params['folder']);
+
+            $this->getImap()->append($this->_params['folder'], $this->generateMail($event,time()));
+        }
+
+        /* Deal with tags */
+        if ($edit) {
+            Kronolith::getTagger()->replaceTags($event->uid, $event->tags, $event->creator, 'event');
+        } else {
+            Kronolith::getTagger()->tag($event->uid, $event->tags, $event->creator, 'event');
+        }
+
+        $cal = $GLOBALS['kronolith_shares']->getShare($event->calendar);
+
+        /* Notify about the changed event. */
+        Kronolith::sendNotification($event, $edit ? 'edit' : 'add');
+
+        /* Log the creation/modification of this item in the history log. */
+        try {
+            $GLOBALS['injector']->getInstance('Horde_History')->log('kronolith:' . $event->calendar . ':' . $event->uid, $action, true);
+        } catch (Exception $e) {
+            Horde::logMessage($e, 'ERR');
+        }
+
+        // refresh IMAP cache
+        $this->synchronize(true);
+
+        if (is_callable('Kolab', 'triggerFreeBusyUpdate')) {
+            //Kolab::triggerFreeBusyUpdate($this->_data->parseFolder($event->calendar));
+        }
+
+        return $event->uid;
+    }
+    /**
+     * Generates a mail to store in the backend
+     *
+     * @param Kronolith_Event_Imap $event  The event to save.
+     *
+     * @throws Horde_Mime_Exception
+     */
+    protected function generateMail($event, $creationDate = null)
+    {
+        if (is_null($creationDate)) {
+            $creationDate = time();
+        }
+        $boundary = "Boundary-00=_".md5(uniqid(rand()));
+
+        $header ='From: '.$this->_params['username'].' <'.$this->_params['username'].'@'.$this->_params['hostspec'].">\r\n";
+        $header.="Subject: $event->uid\r\n";
+        $header.='Date: '.strftime('%a, %d %b %Y %H:%M:%S %z',$creationDate)."\r\n";
+        $header.="User-Agent: Kronolith Imap Driver 0.1\r\n";
+        $header.="MIME-Version: 1.0\r\n";
+        $header.="X-Kolab-Type: application/x-vnd.kolab.event\r\n";
+        $header.="Content-Type: Multipart/Mixed;\r\n";
+        $header.="  boundary=\"$boundary\"\r\n";
+        $header.="Status: RO\r\n\r\n";
+        $header.="--$boundary\r\n";
+
+        $message ="Content-Type: Text/Plain;\r\n";
+        $message.="  charset=\"us-ascii\"\r\n";
+        $message.="Content-Transfer-Encoding: 7bit\r\n";
+        $message.="Content-Disposition:\r\n";
+        $message.="\r\n";
+        $message.="This is a Kolab Groupware object.\r\n";
+        $message.="To view this object you will need an email client that can understand the Kolab Groupware format.\r\n";
+        $message.="For a list of such email clients please visit\r\n";
+        $message.="http://www.kolab.org/kolab2-clients.html\r\n";
+        $message.="--$boundary\r\n";
+
+        $xml_attachment ="Content-Type: application/x-vnd.kolab.event;\r\n";
+        $xml_attachment.="  name=\"kolab.xml\"\r\n";
+        $xml_attachment.="Content-Transfer-Encoding: 7bit\r\n";
+        $xml_attachment.="Content-Disposition: attachment;\r\n";  
+        $xml_attachment.="  filename=\"kolab.xml\"\r\n\r\n";
+        $xml_attachment.= $this->_kolabFormat->save($event->toKolab())." \r\n";
+        $xml_attachment.="--$boundary--\r\n";
+
+        $mail = array();
+        $mail[] = array('data'  => $header.$message.$xml_attachment,
+                        'flags' => array('\Seen')
+        );
+        return $mail ;
+    }
+
+    /**
+     * Stub to be overridden in the child class.
+     *
+     * @throws Kronolith_Exception
+     */
+    protected function _move($eventId, $newCalendar)
+    {
+        return;
+    }
+    
+
+
+    /**
+     * Delete a calendar and all its events.
+     *
+     * @param string $calendar  The name of the calendar to delete.
+     *
+     * @throws Kronolith_Exception
+     */
+    public function delete($calendar)
+    {
+        /*
+        $this->open($calendar);
+        $result = $this->synchronize();
+
+        foreach($this->listEvents() as $event) {
+            $this->deleteEvent($event->uid);
+        }
+        */
+        return;
+    }
+
+    /**
+     * Delete an event.
+     *
+     * @param string $eventId  The ID of the event to delete.
+     *
+     * @throws Kronolith_Exception
+     * @throws Horde_Exception_NotFound
+     * @throws Horde_Mime_Exception
+     */
+    public function deleteEvent($eventId, $silent = false)
+    {
+        
+        $result = $this->synchronize();
+
+        if (!$this->exists($eventId)) {
+            throw new Kronolith_Exception(sprintf(_("Event not found: %s"), $eventId));
+        }
+
+        $event = $this->getEvent($eventId);
+        
+        $this->getImap()->store($this->_params['folder'], array(
+            'add' => array('\\deleted'),
+            'ids' => new Horde_Imap_Client_Ids($this->_uids_cache[$eventId])
+        ));
+
+        // Notify about the deleted event.
+        if (!$silent) {
+            Kronolith::sendNotification($event, 'delete');
+        }
+
+        // Log the deletion of this item in the history log.
+        try {
+            $GLOBALS['injector']->getInstance('Horde_History')->log('kronolith:' . $event->calendar . ':' . $event->uid, array('action' => 'delete'), true);
+        } catch (Exception $e) {
+            Horde::logMessage($e, 'ERR');
+        }
+
+        if (is_callable('Kolab', 'triggerFreeBusyUpdate')) {
+            //Kolab::triggerFreeBusyUpdate($this->_data->parseFolder($event->calendar));
+        }
+
+        unset($this->_events_cache[$eventId]);
+        unset($this->_uids_cache[$eventId]);
+        $this->getImap()->expunge($this->_params['folder']);
+        
+        return;
+    }
+    
+    
+    
+    
+    
+    
 }
