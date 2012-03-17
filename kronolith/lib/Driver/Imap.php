@@ -26,10 +26,10 @@ class Kronolith_Driver_Imap extends Kronolith_Driver
      * @var array
      */
     private $_events_cache;
-    
+
     /**
     * Internal cache of mails uids. eventID/UID corresponding to the mail is key
-    * 
+    *
     * @var array
     */
     private $_uids_cache;
@@ -342,7 +342,7 @@ class Kronolith_Driver_Imap extends Kronolith_Driver
          return false;*/
         $result = $this->synchronize();
 
-        return array_key_exists($uis,$this->_events_cache)? $uid : false ;
+        return array_key_exists($uis,$this->_events_cache) ? $uid : false;
     }
 
     /**
@@ -385,11 +385,10 @@ class Kronolith_Driver_Imap extends Kronolith_Driver
      */
     public function getByUID($uid, $calendars = null, $getAll = false)
     {
-       
         $this->synchronize();
 
         if (!array_key_exists($uid, $this->_events_cache)) {
-            continue;
+            //continue;
         }
 
         // Ok, found event
@@ -449,11 +448,12 @@ class Kronolith_Driver_Imap extends Kronolith_Driver
 
         if (!$event->uid) {
             $event->uid = strval(new Horde_Support_Uuid());
+            $event->id = $event->uid;
         }
 
         if (!$edit) {
             $this->getImap()->append($this->_params['folder'], $this->generateMail($event));
-        } 
+        }
         else {
             $this->getImap()->store($this->_params['folder'], array(
                 'add' => array('\\deleted'),
@@ -552,8 +552,6 @@ class Kronolith_Driver_Imap extends Kronolith_Driver
     {
         return;
     }
-    
-
 
     /**
      * Delete a calendar and all its events.
@@ -564,14 +562,13 @@ class Kronolith_Driver_Imap extends Kronolith_Driver
      */
     public function delete($calendar)
     {
-        /*
         $this->open($calendar);
         $result = $this->synchronize();
 
         foreach($this->listEvents() as $event) {
             $this->deleteEvent($event->uid);
         }
-        */
+
         return;
     }
 
@@ -585,16 +582,15 @@ class Kronolith_Driver_Imap extends Kronolith_Driver
      * @throws Horde_Mime_Exception
      */
     public function deleteEvent($eventId, $silent = false)
-    {
-        
+    {        
         $result = $this->synchronize();
 
-        if (!$this->exists($eventId)) {
+        /*if (!$this->exists($eventId)) {
             throw new Kronolith_Exception(sprintf(_("Event not found: %s"), $eventId));
-        }
+        }*/
 
         $event = $this->getEvent($eventId);
-        
+
         $this->getImap()->store($this->_params['folder'], array(
             'add' => array('\\deleted'),
             'ids' => new Horde_Imap_Client_Ids($this->_uids_cache[$eventId])
@@ -619,13 +615,7 @@ class Kronolith_Driver_Imap extends Kronolith_Driver
         unset($this->_events_cache[$eventId]);
         unset($this->_uids_cache[$eventId]);
         $this->getImap()->expunge($this->_params['folder']);
-        
+
         return;
-    }
-    
-    
-    
-    
-    
-    
+    } 
 }
