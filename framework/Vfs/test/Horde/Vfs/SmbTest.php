@@ -14,7 +14,7 @@
 /**
  * Test the SMB based virtual file system.
  *
- * Copyright 2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2011-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -27,6 +27,17 @@
  */
 class Horde_Vfs_SmbTest extends PHPUnit_Framework_TestCase
 {
+    public function setUp()
+    {
+        $this->_oldTimezone = date_default_timezone_get();
+        date_default_timezone_set('Europe/Berlin');
+    }
+
+    public function tearDown()
+    {
+        date_default_timezone_set($this->_oldTimezone);
+    }
+
     public function testParseListing()
     {
         $vfs = new Horde_Vfs_Smb();

@@ -5,7 +5,7 @@
  * This file defines Horde's core API interface. Other core Horde libraries
  * can interact with Horde through this API.
  *
- * Copyright 2010-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2010-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -50,7 +50,7 @@ class Gollem_Application extends Horde_Registry_Application
 
     /**
      */
-    public $version = 'H4 (2.0.1-git)';
+    public $version = 'H4 (2.0.3-git)';
 
     /**
      * Cached values to add to the session after authentication.
@@ -119,6 +119,21 @@ class Gollem_Application extends Horde_Registry_Application
                     'name' => $val['name'],
                     'selected' => ($selected == $key)
                 );
+                if ($selected == $key) {
+                    if (!empty($val['loginparams'])) {
+                        foreach ($val['loginparams'] as $param => $label) {
+                            $params[$param] = array(
+                                'label' => $label,
+                                'type' => 'text',
+                                'value' => isset($val['params'][$param]) ? $val['params'][$param] : ''
+                            );
+                        }
+                    }
+                    if (Gollem_Auth::canAutoLogin($key)) {
+                        $params['horde_user'] = null;
+                        $params['horde_pass'] = null;
+                    }
+                }
             }
             $params['backend_key'] = array(
                 'label' => _("Backend"),
@@ -129,7 +144,7 @@ class Gollem_Application extends Horde_Registry_Application
 
         return array(
             'js_code' => array(),
-            'js_files' => array(),
+            'js_files' => array(array('login.js', 'gollem')),
             'params' => $params
         );
     }
@@ -207,10 +222,8 @@ class Gollem_Application extends Horde_Registry_Application
             $backend_key != $GLOBALS['session']->get('gollem', 'backend_key')) {
             Gollem_Auth::changeBackend($backend_key);
         }
-        if (empty(Gollem::$backend['auth'])) {
-            return false;
-        }
-        return true;
+
+        return !empty(Gollem::$backend['auth']);
     }
 
     /**
@@ -219,7 +232,7 @@ class Gollem_Application extends Horde_Registry_Application
     {
         foreach ($ui->getChangeablePrefs() as $val) {
             switch ($val) {
-            case 'columns':
+            case 'columnselect':
                 Horde_Core_Prefs_Ui_Widgets::sourceInit();
                 break;
             }
@@ -243,9 +256,9 @@ class Gollem_Application extends Horde_Registry_Application
 
                 foreach ($info['attributes'] as $column) {
                     if (isset($selected_list[$column])) {
-                        $selected[] = array($column, $column);
+                        $selected[$column] = $column;
                     } else {
-                        $unselected[] = array($column, $column);
+                        $unselected[$column] = $column;
                     }
                 }
                 $sources[$source] = array(
@@ -255,11 +268,11 @@ class Gollem_Application extends Horde_Registry_Application
             }
 
             return Horde_Core_Prefs_Ui_Widgets::source(array(
-                'mainlabel' => _("Choose which backends to display, and in what order:"),
-                'selectlabel' => _("These backends will display in this order:"),
+                'mainlabel' => _("Choose which columns to display, and in what order:"),
+                'selectlabel' => _("These columns will display in this order:"),
                 'sourcelabel' => _("Select a backend:"),
                 'sources' => $sources,
-                'unselectlabel' => _("Backends that will not be displayed:")
+                'unselectlabel' => _("Columns that will not be displayed:")
             ));
         }
 
@@ -296,7 +309,9 @@ class Gollem_Application extends Horde_Registry_Application
     public function sidebarCreate(Horde_Tree_Base $tree, $parent = null,
                                   array $params = array())
     {
+        $icon = Horde_Themes::img('gollem.png');
         $url = Horde::url('manager.php');
+
         foreach (Gollem_Auth::getBackend() as $key => $val) {
             $tree->addNode(
                 $parent . $key,
@@ -305,7 +320,7 @@ class Gollem_Application extends Horde_Registry_Application
                 1,
                 false,
                 array(
-                    'icon' => Horde_Themes::img('gollem.png'),
+                    'icon' => $icon,
                     'url' => $url->add(array('backend_key' => $key))
                 )
             );

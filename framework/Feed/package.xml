@@ -3,24 +3,24 @@
  <name>Horde_Feed</name>
  <channel>pear.horde.org</channel>
  <summary>Horde Feed libraries</summary>
- <description>This package provides support for working with feed formats such as RSS and Atom.</description>
+ <description>Support for working with feed formats such as RSS and Atom.</description>
  <lead>
   <name>Chuck Hagenbuch</name>
   <user>chuck</user>
   <email>chuck@horde.org</email>
   <active>yes</active>
  </lead>
- <date>2011-07-21</date>
- <time>10:27:17</time>
+ <date>2011-11-22</date>
+ <time>15:26:13</time>
  <version>
-  <release>1.1.1</release>
+  <release>1.1.2</release>
   <api>1.1.0</api>
  </version>
  <stability>
   <release>stable</release>
   <api>stable</api>
  </stability>
- <license uri="http://www.horde.org/licenses/bsd">BSD</license>
+ <license uri="http://www.horde.org/licenses/bsd">BSD-2-Clause</license>
  <notes>
 * 
  </notes>
@@ -38,6 +38,7 @@
        <file name="read.php" role="doc" />
        <file name="reader.php" role="doc" />
       </dir> <!-- /doc/Horde/Feed/examples -->
+      <file name="COPYING" role="doc" />
      </dir> <!-- /doc/Horde/Feed -->
     </dir> <!-- /doc/Horde -->
    </dir> <!-- /doc -->
@@ -312,6 +313,7 @@
  </dependencies>
  <phprelease>
   <filelist>
+   <install as="COPYING" name="doc/Horde/Feed/COPYING" />
    <install as="examples/blogger.php" name="doc/Horde/Feed/examples/blogger.php" />
    <install as="examples/blogroll.php" name="doc/Horde/Feed/examples/blogroll.php" />
    <install as="examples/delete.php" name="doc/Horde/Feed/examples/delete.php" />
@@ -538,7 +540,7 @@
     <api>alpha</api>
    </stability>
    <date>2011-03-08</date>
-   <license uri="http://www.horde.org/licenses/bsd">BSD</license>
+   <license uri="http://www.horde.org/licenses/bsd">BSD-2-Clause</license>
    <notes>
 * First alpha release for Horde 4.
 * More robust parsing (recover from XML errors, fall back to HTML parsing)
@@ -558,7 +560,7 @@
     <api>beta</api>
    </stability>
    <date>2011-03-16</date>
-   <license uri="http://www.horde.org/licenses/bsd">BSD</license>
+   <license uri="http://www.horde.org/licenses/bsd">BSD-2-Clause</license>
    <notes>
 * First beta release for Horde 4.
    </notes>
@@ -573,7 +575,7 @@
     <api>beta</api>
    </stability>
    <date>2011-03-22</date>
-   <license uri="http://www.horde.org/licenses/bsd">BSD</license>
+   <license uri="http://www.horde.org/licenses/bsd">BSD-2-Clause</license>
    <notes>
 * First release candidate for Horde 4.
    </notes>
@@ -588,7 +590,7 @@
     <api>beta</api>
    </stability>
    <date>2011-03-29</date>
-   <license uri="http://www.horde.org/licenses/bsd">BSD</license>
+   <license uri="http://www.horde.org/licenses/bsd">BSD-2-Clause</license>
    <notes>
 * Second release candidate for Horde 4.
 * [jan] Fix loading of local files with non-URI characters in the file name.
@@ -605,7 +607,7 @@
     <api>stable</api>
    </stability>
    <date>2011-04-06</date>
-   <license uri="http://www.horde.org/licenses/bsd">BSD</license>
+   <license uri="http://www.horde.org/licenses/bsd">BSD-2-Clause</license>
    <notes>
 * First stable release for Horde 4.
    </notes>
@@ -618,7 +620,7 @@
     <release>stable</release>
     <api>stable</api></stability>
    <date>2011-06-01</date>
-   <license uri="http://www.horde.org/licenses/bsd">BSD</license>
+   <license uri="http://www.horde.org/licenses/bsd">BSD-2-Clause</license>
    <notes>
 * [gwr] Added an example on how to post to blogger.com.
 * [gwr] Support additional request headers when updating Atom entries.
@@ -631,8 +633,21 @@
    <stability>
     <release>stable</release>
     <api>stable</api></stability>
-   <date>2011-07-21</date>
-   <license uri="http://www.horde.org/licenses/bsd">BSD</license>
+   <date>2011-11-22</date>
+   <license uri="http://www.horde.org/licenses/bsd">BSD-2-Clause</license>
+   <notes>
+* [jan] Fix tests to work with PHPUnit 3.6.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.1.2</release>
+    <api>1.1.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-11-22</date>
+   <license uri="http://www.horde.org/licenses/bsd">BSD-2-Clause</license>
    <notes>
 * 
    </notes>

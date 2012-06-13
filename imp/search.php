@@ -23,7 +23,7 @@
  *   - subfolder: (boolean) If set, search mailbox will default to subfolder
  *                search.
  *
- * Copyright 1999-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 1999-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -365,9 +365,8 @@ $t->setOption('gettext', true);
 $t->set('action', Horde::url('search.php'));
 
 /* Determine if we are editing a search query. */
+$q_ob = IMP::$mailbox->getSearchOb();
 if ($vars->edit_query && IMP::$mailbox->search) {
-    $q_ob = IMP::$mailbox->getSearchOb();
-
     if (IMP::$mailbox->vfolder) {
         if (!IMP::$mailbox->editvfolder) {
             $notification->push(_("Built-in Virtual Folders cannot be edited."), 'horde.error');
@@ -388,18 +387,12 @@ if ($vars->edit_query && IMP::$mailbox->search) {
         $t->set('search_label', htmlspecialchars($q_ob->label));
         $js_vars['ImpSearch.prefsurl'] = strval(Horde::getServiceLink('prefs', 'imp')->add('group', 'searches')->setRaw(true));
     }
-
-    $js_vars['ImpSearch.i_criteria'] = $q_ob->criteria;
-    $js_vars['ImpSearch.i_folders'] = array(
-        'm' => IMP_Mailbox::formTo($q_ob->all ? array(IMP_Search_Query::ALLSEARCH) : $q_ob->mbox_list),
-        's' => IMP_Mailbox::formTo($q_ob->subfolder_list)
-    );
 } else {
     /* Process list of recent searches. */
     $rs = array();
     $imp_search->setIteratorFilter(IMP_Search::LIST_QUERY);
     foreach ($imp_search as $val) {
-        $rs[$val->id] = array(
+        $rs[$val->formid] = array(
             'c' => $val->criteria,
             'f' => array(
                 'm' => IMP_Mailbox::formTo($val->all ? array(IMP_Search_Query::ALLSEARCH) : array_map('strval', $val->mbox_list)),
@@ -417,6 +410,14 @@ if ($vars->edit_query && IMP::$mailbox->search) {
     $js_vars['ImpSearch.i_folders'] = array(
         'm' => $vars->subfolder ? array() : $s_mboxes,
         's' => $vars->subfolder ? $s_mboxes : array()
+    );
+}
+
+if (IMP::$mailbox->search) {
+    $js_vars['ImpSearch.i_criteria'] = $q_ob->criteria;
+    $js_vars['ImpSearch.i_folders'] = array(
+        'm' => IMP_Mailbox::formTo($q_ob->all ? array(IMP_Search_Query::ALLSEARCH) : $q_ob->mbox_list),
+        's' => IMP_Mailbox::formTo($q_ob->subfolder_list)
     );
 }
 
@@ -456,28 +457,14 @@ $t->set('flist', $flag_set);
 /* Generate master folder list. */
 $folder_list = array();
 if (!$t->get('edit_query_filter')) {
-    $imap_tree = $injector->getInstance('IMP_Imap_Tree');
-    $imap_tree->setIteratorFilter();
+    $js_vars['ImpSearch.allsearch'] = IMP_Mailbox::formTo(IMP_Search_Query::ALLSEARCH);
+    $ob = $injector->getInstance('IMP_Ui_Search')->getSearchMboxList();
+    $folder_list = $ob->folder_list;
+    $t->set('tree', $ob->tree->getTree());
 
-    $t2 = $injector->createInstance('Horde_Template');
-    $t2->setOption('gettext', true);
-    $t2->set('allsearch', IMP_Mailbox::formTo(IMP_Search_Query::ALLSEARCH));
-
-    $js_vars['ImpSearch.allsearch'] = $t2->get('allsearch');
-
-    $tree = $imap_tree->createTree('imp_search', array(
-        'render_params' => array(
-            'abbrev' => 0,
-            'container_select' => true,
-            'customhtml' => $t2->fetch(IMP_TEMPLATES . '/imp/search/search-all.html'),
-            'heading' => _("Add search folder:")
-        ),
-        'render_type' => 'IMP_Tree_Flist'
-    ));
-    $t->set('tree', $tree->getTree());
-
-    foreach ($imap_tree as $val) {
-        $folder_list[$val->form_to] = $val->display;
+    if ($prefs->getValue('subscribe')) {
+        $t->set('subscribe', true);
+        $js_vars['ImpSearch.ajaxurl'] = Horde::getServiceLink('ajax', 'imp')->url;
     }
 }
 
@@ -492,7 +479,7 @@ Horde::addInlineJsVars(array_merge($js_vars, array(
         'dimp' => $dimp_view,
         'folder_list' => $folder_list,
         'months' => Horde_Core_Ui_JsCalendar::months(),
-        'searchmbox' => strval($default_mailbox),
+        'searchmbox' => $default_mailbox->form_to,
         'types' => $types
     ),
     /* Gettext strings for this page. */
@@ -515,7 +502,7 @@ Horde::addInlineJsVars(array_merge($js_vars, array(
 
 if ($dimp_view) {
     if (!$vars->edit_query) {
-        $t->set('return_mailbox_val', sprintf(_("Return to %s"), htmlspecialchars($default_mailbox->display)));
+        $t->set('return_mailbox_val', sprintf(_("Return to %s"), $default_mailbox->display_html));
     }
 } else {
     $menu = IMP::menu();

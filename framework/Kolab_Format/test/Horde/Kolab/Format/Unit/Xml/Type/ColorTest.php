@@ -20,7 +20,7 @@ require_once dirname(__FILE__) . '/../../../Autoload.php';
 /**
  * Test the color attribute handler.
  *
- * Copyright 2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2011-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -67,13 +67,15 @@ extends Horde_Kolab_Format_TestCase
 
     public function testLoadDefault()
     {
-        $attributes = $this->load(
+        list($helper, $root_node, $type) = $this->getXmlType(
+            'Horde_Kolab_Format_Stub_ColorDefault',
             '<?xml version="1.0" encoding="UTF-8"?>
-<kolab version="1.0"/>',
-            array(
-                'value' => Horde_Kolab_Format_Xml::VALUE_DEFAULT,
-                'default' => '#abcdef'
-            )
+<kolab version="1.0"/>'
+        );
+        $attributes = array();
+        $params = array();
+        $type->load(
+            $this->getElement($params), $attributes, $root_node, $helper, $params
         );
         $this->assertEquals('#abcdef', $attributes['color']);
     }
@@ -149,11 +151,15 @@ extends Horde_Kolab_Format_TestCase
      */
     public function testSaveNotEmpty()
     {
-        $this->saveToXml(
+        list($helper, $root_node, $type) = $this->getXmlType(
+            'Horde_Kolab_Format_Stub_ColorNotEmpty',
             '<?xml version="1.0" encoding="UTF-8"?>
-<kolab version="1.0"/>',
-                array(),
-            array('value' => Horde_Kolab_Format_Xml::VALUE_NOT_EMPTY)
+<kolab version="1.0"/>'
+        );
+        $attributes = array();
+        $params = array();
+        $type->save(
+            $this->getElement($params), $attributes, $root_node, $helper, $params
         );
     }
 
@@ -190,14 +196,19 @@ extends Horde_Kolab_Format_TestCase
 
     public function testSaveNotEmptyWithOldValue()
     {
+        list($helper, $root_node, $type) = $this->getXmlType(
+            'Horde_Kolab_Format_Stub_ColorNotEmpty',
+            '<?xml version="1.0" encoding="UTF-8"?>
+<kolab version="1.0" a="b"><color type="strange"><b/>STRANGE<a/></color>c</kolab>'
+        );
+        $attributes = array();
+        $params = array();
+        
         $this->assertInstanceOf(
             'DOMNode', 
-            $this->saveToReturn(
-                '<?xml version="1.0" encoding="UTF-8"?>
-<kolab version="1.0" a="b"><color type="strange"><b/>STRANGE<a/></color>c</kolab>',
-                array(),
-                array('value' => Horde_Kolab_Format_Xml::VALUE_NOT_EMPTY,)
-            )
+            $type->save(
+                $this->getElement($params), $attributes, $root_node, $helper, $params
+			)
         );
     }
 

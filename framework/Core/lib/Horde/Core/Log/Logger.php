@@ -4,7 +4,7 @@
  * entries are consistently generated across the applications and framework
  * libraries.
  *
- * Copyright 2010-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2010-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -47,6 +47,9 @@ class Horde_Core_Log_Logger extends Horde_Log_Logger
                 $priority = Horde_Log::ERR;
             }
             $text = $event->getMessage();
+            if (!empty($event->details)) {
+                $text .= ' ' . $event->details;
+            }
             $trace = array(
                 'file' => $event->getFile(),
                 'line' => $event->getLine()

@@ -10,12 +10,12 @@
  * Horde_Release::FOCUS_MAJORSECURITY - Major security fixes
  * Horde_Release::FOCUS_DOCS - Documentation improvements
  */
-$this->notes['fm']['focus'] = array(Horde_Release::FOCUS_MINORBUG, Horde_Release::FOCUS_MINORFEATURE);
+$this->notes['fm']['focus'] = array(Horde_Release::FOCUS_MINORSECURITY, Horde_Release::FOCUS_MINORBUG, Horde_Release::FOCUS_MINORFEATURE);
 
 /* Mailing list release notes. */
 $this->notes['ml']['changes'] = <<<ML
 The Horde Team is pleased to announce the final release of the Horde Groupware
-Webmail Edition version 4.0.3.
+Webmail Edition version 4.0.8.
 
 Horde Groupware Webmail Edition is a free, enterprise ready, browser based
 communication suite. Users can read, send and organize email messages with
@@ -29,53 +29,32 @@ http://www.horde.org/apps/webmail/docs/UPGRADING
 For detailed installation and configuration instructions, please see
 http://www.horde.org/apps/webmail/docs/INSTALL
 
-The major changes compared to the Horde Groupware Webmail Edition version 4.0.2
+The major changes compared to the Horde Groupware Webmail Edition version 4.0.7
 are:
 
 General changes:
-    * Added account locking and tracking of failed logins.
-    * Fixed title of tasks portal block.
-    * Fixed write support for LDAP groups.
+    * Updated Czech, Hungarian, Italian, Slovak, and Swedish translations.
     * Small bugfixes and improvements.
 
 Mail changes:
-    * Improved display and switching of reply method in dynamic view.
-    * Added display and switching of reply method to standard view.
-    * Improved search features.
-    * Improved button design in dynamic view.
-    * Added filter for automatically generated messages.
-    * Added flag to indicate mailing list messages.
-    * Added ability to hide deleted messages to dynamic view.
-    * Fixed manual filtering in INBOX.
-
-Address book changes:
-    * Added more default attributes.
+    * Fixed XSS vulnerabilities.
+    * Fixed regression in PGP support.
+    * Improved HTML editor support.
 
 Filters changes:
-    * Fixed disabling of actions.
-    * Fixed sorting of blacklists and whitelists.
+    * Fixed folder names in Procmail rules if using Maildir.
 
 Calendar changes:
-    * Always synchronize the default calendar.
-    * Support snoozing alarms with Sundbird/Lightning.
-    * Support VALARM components from iCalendar 2.0 data.
-    * Fixed displaying of freebusy data in dynamic view.
+    * Fixed XSS vulnerabilities in tasks and search views.
 ML;
 
 /* Freshmeat release notes, not more than 600 characters. */
 $this->notes['fm']['changes'] = <<<FM
-Added account locking and tracking of failed logins.
-Fixed title of tasks portal block.
-Fixed write support for LDAP groups.
-Improved email searching, display and switching of reply methods and button design.
-Added mail filter for automatic messages and flag for mailing list messages.
-Added ability to hide deleted messages to dynamic view.
-Added more default address book attributes.
-Fixed disabling of filter actions.
-Always synchronize the default calendar.
-Support snoozing alarms with Sundbird/Lightning.
-Support VALARM components from iCalendar 2.0 data.
-Fixed displaying of freebusy data.
+Fixed XSS vulnerabilities.
+Fixed regression in PGP support.
+Improved HTML editor support.
+Updated Czech, Hungarian, Italian, Slovak, and Swedish translations.
+Small bugfixes and improvements.
 FM;
 
 $this->notes['name'] = 'Horde Groupware Webmail Edition';

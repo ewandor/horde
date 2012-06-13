@@ -2,7 +2,7 @@
 /**
  * The Horde_Core_Ui_VarRenderer_html:: class renders variables to HTML.
  *
- * Copyright 2003-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2003-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -108,9 +108,10 @@ class Horde_Core_Ui_VarRenderer_Html extends Horde_Core_Ui_VarRenderer
 
     protected function _renderVarInput_phone($form, &$var, &$vars)
     {
-        return sprintf('<input type="text" name="%s" id="%s" size="15" value="%s" %s%s />',
+        return sprintf('<input type="text" name="%s" id="%s" size="%s" value="%s" %s%s />',
                        htmlspecialchars($var->getVarName()),
                        $this->_genID($var->getVarName(), false),
+                       $var->type->getSize(),
                        htmlspecialchars($var->getValue($vars)),
                        $var->isDisabled() ? ' disabled="disabled" ' : '',
                        $this->_getActionScripts($form, $var)
@@ -541,7 +542,7 @@ class Horde_Core_Ui_VarRenderer_Html extends Horde_Core_Ui_VarRenderer
         foreach ($var->type->getSounds() as $sound) {
             $sound = htmlspecialchars($sound);
             $html .= '<li><label><input type="radio" id="' . $this->_genID($var->getVarName(), false) . '" name="' . htmlspecialchars($var->getVarName()) . '" value="' . $sound . '"' . ($value == $sound ? ' checked="checked"' : '') . ' />' . $sound . '</label>'
-                . ' <embed autostart="false" src="'. $GLOBALS['registry']->get('themesuri', 'horde') . '/sounds/' . $sound . '" /></li>';
+                . ' <embed autostart="false" src="'. Horde_Themes::sound($sound) . '" /></li>';
         }
         return $html . '</ul>';
     }
@@ -781,10 +782,11 @@ EOT;
 
     protected function _renderVarInput_email($form, &$var, &$vars)
     {
-        return sprintf('<input type="email" name="%s" id="%s" value="%s"%s />',
+        return sprintf('<input type="email" name="%s" id="%s" value="%s"%s%s />',
                        htmlspecialchars($var->getVarName()),
                        $this->_genID($var->getVarName(), false),
                        htmlspecialchars($var->getValue($vars)),
+                       $var->type->getSize() ? ' size="' . $var->type->getSize() . '"' : '',
                        $this->_getActionScripts($form, $var));
     }
 
@@ -1092,6 +1094,23 @@ EOT;
         }
     }
 
+    protected function _renderVarDisplay_keyval_multienum($form, &$var, &$vars)
+    {
+        $values = $var->getValues();
+        $on = $var->getValue($vars);
+        if (!count($values) || !count($on)) {
+            return Horde_Core_Translation::t("No values");
+        } else {
+            $display = array();
+            foreach ($values as $name) {
+                if (in_array($name, $on)) {
+                    $display[] = $name;
+                }
+            }
+            return htmlspecialchars(implode(', ', $display));
+        }
+    }
+
     protected function _renderVarDisplay_set($form, &$var, &$vars)
     {
         $values = $var->getValues();
@@ -1353,7 +1372,11 @@ EOT;
         if ((is_array($date) && !empty($date['year']) &&
              !empty($date['month']) && !empty($date['day'])) ||
             (!is_array($date) && !empty($date) && $date != '0000-00-00')) {
-            return $var->type->formatDate($date);
+            try {
+                return $var->type->formatDate($date);
+            } catch (Horde_Date_Exception $e) {
+                return $e->getMessage();
+            }
         }
         return '';
     }
@@ -1361,7 +1384,11 @@ EOT;
     protected function _renderVarDisplay_datetime($form, &$var, &$vars)
     {
         $value = $var->getValue($vars);
-        $html = htmlspecialchars($var->type->formatDate($value));
+        try {
+            $html = htmlspecialchars($var->type->formatDate($value));
+        } catch (Horde_Date_Exception $e) {
+            return $e->getMessage();
+        }
         if (!$var->type->emptyDateArray($value)) {
             $html .= Horde_Form_Type_date::getAgo($value);
         }

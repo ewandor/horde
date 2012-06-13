@@ -2,7 +2,7 @@
 /**
  * Whups mail processing library.
  *
- * Copyright 2004-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2004-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file LICENSE for license information (BSD). If you
  * did not receive this file, see http://www.horde.org/licenses/bsdl.php.
@@ -50,9 +50,11 @@ class Whups_Mail
             return true;
         }
 
-        // Try to avoid bounces
+        // Try to avoid bounces.
+        $from = $headers->getValue('from');
         if (strpos($headers->getValue('Content-Type'), 'multipart/report') !== false ||
-            strpos(Horde_String::lower($headers->getValue('from')), 'mailer-daemon') !== false ||
+            stripos($from, 'mailer-daemon@') !== false ||
+            stripos($from, 'postmaster@') !== false ||
             !is_null($headers->getValue('X-Failed-Recipients'))) {
             return true;
         }
@@ -62,7 +64,6 @@ class Whups_Mail
         if (empty($info['summary'])) {
             $info['summary'] = _("[No Subject]");
         }
-        $from = $headers->getValue('from');
 
         // Format the message into a comment.
         $comment = _("Received message:") . "\n\n";

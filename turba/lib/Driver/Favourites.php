@@ -3,14 +3,14 @@
  * Read-only Turba directory driver implementation for favourite
  * recipients. Relies on the contacts/favouriteRecipients API method.
  *
- * Copyright 2010-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2010-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file LICENSE for license information (ASL).  If you did
- * did not receive this file, see http://www.horde.org/licenses/asl.php.
+ * did not receive this file, see http://www.horde.org/licenses/apache.
  *
  * @author   Jan Schneider <jan@horde.org>
  * @category Horde
- * @license  http://www.horde.org/licenses/asl.php ASL
+ * @license  http://www.horde.org/licenses/apache ASL
  * @package  Turba
  */
 class Turba_Driver_Favourites extends Turba_Driver
@@ -65,34 +65,33 @@ class Turba_Driver_Favourites extends Turba_Driver
         $results = array();
 
         foreach ($this->_getAddressBook() as $key => $contact) {
-            $found = !isset($criteria['OR']);
+            if (!count($criteria)) {
+                $results[$key] = $contact;
+                continue;
+            }
             foreach ($criteria as $op => $vals) {
                 if ($op == 'AND') {
-                    foreach ($vals as $val) {
-                        if (isset($contact[$val['field']])) {
-                            switch ($val['op']) {
-                            case 'LIKE':
-                                if (stristr($contact[$val['field']], $val['test']) === false) {
-                                    continue 4;
-                                }
-                                $found = true;
+                    if (!count($vals)) {
+                        $found = false;
+                    } else {
+                        $found = true;
+                        foreach ($vals as $val) {
+                            if (!$this->_match($contact, $val)) {
+                                $found = false;
                                 break;
                             }
                         }
                     }
                 } elseif ($op == 'OR') {
+                    $found = false;
                     foreach ($vals as $val) {
-                        if (isset($contact[$val['field']])) {
-                            switch ($val['op']) {
-                            case 'LIKE':
-                                if (empty($val['test']) ||
-                                    stristr($contact[$val['field']], $val['test']) !== false) {
-                                    $found = true;
-                                    break 3;
-                                }
-                            }
+                        if ($this->_match($contact, $val)) {
+                            $found = true;
+                            break;
                         }
                     }
+                } else {
+                    $found = false;
                 }
             }
             if ($found) {
@@ -104,18 +103,41 @@ class Turba_Driver_Favourites extends Turba_Driver
     }
 
     /**
-     * Reads the given data from the API method and returns the result's
-     * fields.
+     * Returns whether a contact matches some criteria.
      *
-     * @param array $criteria  Search criteria.
-     * @param mixed $id        Data identifier.
-     * @param string $owner    Filter on contacts owned by this owner.
-     * @param array $fields    List of fields to return.
+     * @param array $contact  A contact hash.
+     * @param array $val      Some matching criterion, see _search().
      *
-     * @return arry  Hash containing the search results.
+     * @return boolean  True if the contact matches.
+     */
+    protected function _match($contact, $val)
+    {
+        if (!isset($contact[$val['field']])) {
+            return false;
+        }
+        switch ($val['op']) {
+        case '=':
+            return (string)$contact[$val['field']] == (string)$val['test'];
+        case 'LIKE':
+            return empty($val['test']) ||
+                stristr($contact[$val['field']], $val['test']) !== false;
+        }
+    }
+
+    /**
+     * Reads the given data from the address book and returns the results.
+     *
+     * @param string $key        The primary key field to use.
+     * @param mixed $ids         The ids of the contacts to load.
+     * @param string $owner      Only return contacts owned by this user.
+     * @param array $fields      List of fields to return.
+     * @param array $blobFields  Array of fields containing binary data.
+     *
+     * @return array  Hash containing the search results.
      * @throws Turba_Exception
      */
-    protected function _read(array $criteria, $ids, $owner, array $fields)
+    protected function _read($key, $ids, $owner, array $fields,
+                             array $blobFields = array())
     {
         $book = $this->_getAddressBook();
 

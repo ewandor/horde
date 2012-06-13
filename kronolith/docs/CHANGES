@@ -1,7 +1,114 @@
 -----------
-v3.0.11-git
+v3.0.18-git
 -----------
 
+[jan] Update Swedish translation (Jakob Alvermark
+      <jakob.alvermark@bsdlabs.com>).
+
+
+-------
+v3.0.17
+-------
+
+[jan] SECURITY: Fix XSS vulnerabilities in tasks view and search view (Bug
+      #11189).
+[jan] Update Italian translation (Massimo Malabotta <mmalabotta@units.it>).
+[jan] Improve print styles.
+[jan] Catch if external client doesn't send LAST-MODIFIED attributes (Bug
+      #11130).
+[jan] Don't stop agenda script if there is an error with a single user (Bug
+      #11129).
+[jan] Update Hungarian translation (Zoltán Németh <nemeth.zoltan@etit.hu>).
+[jan] Show round corners only on the start and end of multi-day events
+      (Request #11067).
+
+
+-------
+v3.0.16
+-------
+
+[jan] Use preferred date format in week and agenda views (Bug #11089).
+[jan] Fix fatal error if no external calendars are available (Bug #11079).
+[jan] Fix positioning of events on DST changing dates (Bug #11070).
+[mjr] Fix bug that caused time shift of all day events when imported from
+      ActiveSync devices for users in certain timezones (Bug #10991).
+[mjr] Correctly deal with deleted calendars in sync clients (Bug #10969).
+
+
+-------
+v3.0.15
+-------
+
+[jan] Search complete names and addresses when auto-completing attendees.
+[jan] Fix syntax error in migration script (Bug #10902).
+
+
+-------
+v3.0.14
+-------
+
+[mjr] Fix bug that could cause incorrect event exceptions to be created when
+      drag and dropping events in month view.
+[jan] Fix page titles not always updating correctly.
+[jan] Display event time in dynamic view if requested (Request #9866).
+[jan] Only show end time if different from start time.
+[jan] Fix day sorting in agenda view.
+[jan] Sort user and group names in permission screen (Request #10896).
+
+
+-------
+v3.0.13
+-------
+
+[jan] Hide disabled calendar sections (Bug #9815).
+[gwr] Fixed recurrence handling with the Kolab backend.
+[gwr] Fixed naming of the default calendar for the Kolab backend.
+[gwr] Fixed deleting events with the Kolab backend.
+[gwr] Fixed migrations for SQLite as database backend.
+[mjr] Fix keyboard navigation of time entry fields in dynamic view (Bug
+      #10799).
+[mjr] Fix parsing display_cal variables for internal calendar links on various
+      blocks and embedded imples (Bug #10767).
+[mjr] Fix adding events directly to a resource's calendar (Bug #10827).
+[mjr] Fix regression introduced in 3.0.12 that broke checking a Resource's
+      availability in certain cases (Bug #10806).
+[jan] Don't fail on empty CalDAV calendars (christof@buergi.lugs.ch, Bug
+      #10739).
+[jan] Check permissions when building application drop down
+      (sberthelot@emisfr.com, Bug #10811).
+[gwr] Fix saving Kolab events.
+[jan] Update Japanese translation (Hiromi Kimura <hiromi@tac.tsukuba.ac.jp>).
+
+
+-------
+v3.0.12
+-------
+
+[jan] Show status of events in agenda messages (Request #10517).
+[mjr] Fix selecting custom time from time selection drop down (Bug #10737).
+[jan] Always use fresh Horde_Http_Client instances for remote calendars (Bug
+      #10740).
+[jan] Add confirmation screen when deleting events in dynamic view (Request
+      #10725).
+[jan] Fix holidays disappearing from month view if deleting another event.
+[jan] Fix resetting attendee response status when saving events in dynamic
+      view (Bug #10620).
+[jan] Support CalDAV servers that don't use DAV: as the default namespace
+      (christof@buergi.lugs.ch, Bug #10716).
+[jan] Allow to view and create copies of holiday events (Bug #10650).
+[jan] Don't show import/export tabs in dynamic view if disabled (Bug #10705).
+[jan] Don't show option to share with everyone in basic permissions if disabled
+      (piper@hrz.uni-marburg.de, Bug #10706).
+[mjr] Only set ORGANIZER field if the event is a group meeting (Bug #10697).
+
+
+-------
+v3.0.11
+-------
+
+[mjr] Fix alarms for recurring events (Bug #10678).
+[mjr] Allow filtering listTagInfo results by user.
+[jan] Fix uncompleting tasks in dynamic view (Carlos Timóteo, Bug #10653).
 [cjh/jan] Improve design.
 [mjr] Fix displaying resources when no attendees are present (Bug #10507).
 

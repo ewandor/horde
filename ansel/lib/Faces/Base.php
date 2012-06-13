@@ -2,7 +2,7 @@
 /**
  * Face recognition class
  *
- * Copyright 2007-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2007-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -826,7 +826,8 @@ class Ansel_Faces_Base
         if ($indexes) {
             $sql .= ' AND (' . implode(' OR ', $indexes) . ')';
         }
-        $sql .= ' GROUP BY i.face_id, f.face_name, f.image_id HAVING count(i.face_id) > 0 '
+        $sql .= ' GROUP BY i.face_id, f.face_name, f.image_id, f.gallery_id, '
+            . 'f.face_signature HAVING count(i.face_id) > 0 '
             . 'ORDER BY count(i.face_id) DESC';
         $sql = $GLOBALS['ansel_db']->addLimitOffset(
             $sql,

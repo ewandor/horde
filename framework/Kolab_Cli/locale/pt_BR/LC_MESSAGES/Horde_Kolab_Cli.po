@@ -1,15 +1,15 @@
 # Portuguese translations for Horde_Kolab_Cli package.
-# Copyright 2011 Horde LLC
+# Copyright 2011-2012 Horde LLC (http://www.horde.org/)
 # This file is distributed under the same license as the Horde_Kolab_Cli package.
 # Automatically generated, 2011.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Horde_Kolab_Cli \n"
+"Project-Id-Version: Horde_Kolab_Cli\n"
 "Report-Msgid-Bugs-To: dev@lists.horde.org\n"
-"POT-Creation-Date: 2011-07-14 01:05-0300\n"
-"PO-Revision-Date: 2011-05-18 12:23+0200\n"
-"Last-Translator: Automatically generated\n"
+"POT-Creation-Date: 2012-01-17 12:38+0100\n"
+"PO-Revision-Date: 2012-03-27 22:39-0300\n"
+"Last-Translator: Luis Felipe Marzagao <duli@easylifeproject.org>\n"
 "Language-Team: i18n@lists.horde.org\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
@@ -22,9 +22,13 @@ msgid ""
 "  account - Handles operations on an account level (like listing *all* "
 "available groupware objects)\n"
 "\n"
-"  - all [TYPE] : List all groupware objects of the account (optionally "
-"limit \n"
-"                 to TYPE)\n"
+"  - all [TYPE]       : List all groupware objects of the account "
+"(optionally\n"
+"                       limit to TYPE)\n"
+"  - defects [TYPE]   : List all defects of the account (optionally limit to\n"
+"                       TYPE)\n"
+"  - issuelist [TYPE] : A brief list of issues of the account (optionally\n"
+"                       limit to TYPE)\n"
 "\n"
 "\n"
 msgstr ""
@@ -36,18 +40,21 @@ msgid ""
 "indicates which data type should be read. This is usually already defined by "
 "the folder setting.\n"
 "\n"
-"  - info      PATH              : Display general information.\n"
-"  - stamp     PATH              : Display the folder status information.\n"
-"  - ids       PATH TYPE         : Display all object ids in the folder PATH "
+"  - info      PATH               : Display general information.\n"
+"  - stamp     PATH               : Display the folder status information.\n"
+"  - ids       PATH TYPE          : Display all object ids in the folder PATH "
 "of\n"
-"                                  type TYPE.\n"
-"  - complete  PATH BACKENDID    : Return the complete message from folder "
+"                                   type TYPE.\n"
+"  - complete  PATH BACKENDID     : Return the complete message from folder "
 "PATH\n"
-"                                  for the given BACKENDID.\n"
-"  - backendid PATH TYPE OBJECTID: Return the backend ID for the object with "
+"                                   for the given BACKENDID.\n"
+"  - create    PATH TYPE yaml PATH: Create an object as defined in the "
+"specified\n"
+"                                   YAML data\n"
+"  - backendid PATH TYPE OBJECTID : Return the backend ID for the object with "
 "ID\n"
-"                                  OBJECTID.\n"
-"  - delete    PATH TYPE ID,ID,..: Delete the given object id's.\n"
+"                                   OBJECTID.\n"
+"  - delete    PATH TYPE ID,ID,.. : Delete the given object id's.\n"
 "\n"
 msgstr ""
 
@@ -125,17 +132,17 @@ msgstr ""
 msgid "%s is no local file!"
 msgstr ""
 
-#: lib/Horde/Kolab/Cli/Module/Account.php:153
-#: lib/Horde/Kolab/Cli/Module/Data.php:232
+#: lib/Horde/Kolab/Cli/Module/Account.php:240
+#: lib/Horde/Kolab/Cli/Module/Data.php:235
 #: lib/Horde/Kolab/Cli/Module/Folder.php:228
 #: lib/Horde/Kolab/Cli/Module/Format.php:165
 #: lib/Horde/Kolab/Cli/Module/Ledger.php:152
 #: lib/Horde/Kolab/Cli/Module/List.php:208
-#, fuzzy, php-format
+#, php-format
 msgid "Action %s not supported!"
-msgstr "Esta ação não é suportada."
+msgstr "Ação %s não suportada!"
 
-#: lib/Horde/Kolab/Cli/Module/Base.php:150
+#: lib/Horde/Kolab/Cli/Module/Base.php:147
 msgid ""
 "Activates the IMAP debug log. This will log the full IMAP communication - "
 "CAUTION: the \"php\" driver is the only driver variant that does not support "
@@ -145,27 +152,33 @@ msgid ""
 "directed there."
 msgstr ""
 
-#: lib/Horde/Kolab/Cli/Module/Base.php:134
+#: lib/Horde/Kolab/Cli/Module/Base.php:131
 msgid "Deactivate caching of the IMAP data."
 msgstr ""
 
-#: lib/Horde/Kolab/Cli/Module/Base.php:118
+#: lib/Horde/Kolab/Cli/Module/Base.php:155
+msgid ""
+"Path to the configuration file. Comman line parameters overwrite values from "
+"the configuration file."
+msgstr ""
+
+#: lib/Horde/Kolab/Cli/Module/Base.php:115
 msgid ""
 "Produce time measurements to indicate how long the processing takes. You "
 "*must* activate logging for this as well."
 msgstr ""
 
-#: lib/Horde/Kolab/Cli/Module/Base.php:126
+#: lib/Horde/Kolab/Cli/Module/Base.php:123
 msgid ""
 "Report memory consumption statistics. You *must* activate logging for this "
 "as well."
 msgstr ""
 
-#: lib/Horde/Kolab/Cli/Module/Base.php:110
+#: lib/Horde/Kolab/Cli/Module/Base.php:107
 msgid "Sets the connection type. Use either \"tls\" or \"ssl\" here."
 msgstr ""
 
-#: lib/Horde/Kolab/Cli/Module/Base.php:59
+#: lib/Horde/Kolab/Cli/Module/Base.php:58
 msgid ""
 "The Kolab backend driver that should be used.\n"
 "Choices are:\n"
@@ -179,32 +192,29 @@ msgid ""
 " - mock      [Mem.]: A dummy driver that uses memory."
 msgstr ""
 
-#: lib/Horde/Kolab/Cli/Module/Base.php:93
-#, fuzzy
+#: lib/Horde/Kolab/Cli/Module/Base.php:91
 msgid "The host that holds the data."
-msgstr "Clique em %s para baixar os dados."
+msgstr "O servidor que abriga os dados."
 
-#: lib/Horde/Kolab/Cli/Module/Base.php:85
-#, fuzzy
+#: lib/Horde/Kolab/Cli/Module/Base.php:83
 msgid "The password of the user accessing the backend."
-msgstr "Houve um erro ao criar o estado: %s."
+msgstr "A senha do usuário acessando o backend."
 
-#: lib/Horde/Kolab/Cli/Module/Base.php:102
+#: lib/Horde/Kolab/Cli/Module/Base.php:99
 msgid "The port that should be used to connect to the host."
 msgstr ""
 
-#: lib/Horde/Kolab/Cli/Module/Base.php:77
-#, fuzzy
+#: lib/Horde/Kolab/Cli/Module/Base.php:75
 msgid "The user accessing the backend."
-msgstr "Houve um erro ao criar o estado: %s."
+msgstr "O usuáiro acessando o backend."
 
-#: lib/Horde/Kolab/Cli/Module/Base.php:142
+#: lib/Horde/Kolab/Cli/Module/Base.php:139
 msgid ""
 "Write a log file in the provided LOG location. Use \"STDOUT\" here to direct "
 "the log output to the screen."
 msgstr ""
 
-#: lib/Horde/Kolab/Cli.php:94
+#: lib/Horde/Kolab/Cli.php:115
 msgid ""
 "[options] MODULE ACTION\n"
 "\n"

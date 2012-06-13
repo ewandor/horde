@@ -2,7 +2,7 @@
 /**
  * Dynamic view (dimp) index template.
  *
- * Copyright 2005-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2005-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -93,12 +93,13 @@ function _simpleButton($id, $text, $image, $nodisplay = false)
     <ul class="folderlist" id="normalfolders">
      <li class="folder" id="folderopts">
       <span class="iconImgSidebar folderoptsImg"></span>
-      <a id="folderopts_link" title="<?php echo _("Folder Options") ?>"><?php echo _("Folder Options") ?></a>
+      <a id="folderopts_link" title="<?php echo _("Folder Actions") ?>"><?php echo _("Folder Actions") ?></a>
      </li>
      <li class="folder" id="dropbase" style="display:none">
       <span class="iconImgSidebar folderImg"></span>
       <a title="<?php echo _("Move to Base Level") ?>"><?php echo _("Move to Base Level") ?></a>
      </li>
+     <div class="sepfull sepfulllight"></div>
     </ul>
 <?php endif; ?>
    </div>
@@ -127,6 +128,7 @@ function _simpleButton($id, $text, $image, $nodisplay = false)
         <input autocomplete="off" id="qsearch_input" type="text" />
        </form>
       </div>
+      <div id="filter"><?php echo IMP_Dimp::actionButton(array('icon' => 'Filter', 'id' => 'button_filter', 'title' => _("Filter"))) ?></div>
 <?php endif; ?>
       <div><?php echo IMP_Dimp::actionButton(array('class' => 'noselectDisable', 'icon' => 'Reply', 'id' => 'button_reply', 'title' => _("Reply"))) ?></div>
       <div><?php echo IMP_Dimp::actionButton(array('class' => 'noselectDisable', 'icon' => 'Forward', 'id' => 'button_forward', 'title' => _("Forward"))) ?></div>
@@ -268,9 +270,9 @@ function _simpleButton($id, $text, $image, $nodisplay = false)
  <div class="folderName"></div>
  <div class="sep"></div>
  <a id="ctx_folder_create"><span class="iconImg"></span><?php echo _("Create subfolder") ?></a>
- <a id="ctx_folder_rename"><span class="iconImg"></span><?php echo _("Rename Folder") ?></a>
- <a id="ctx_folder_empty"><span class="iconImg"></span><?php echo _("Empty Folder") ?></a>
- <a id="ctx_folder_delete"><span class="iconImg"></span><?php echo _("Delete Folder") ?></a>
+ <a id="ctx_folder_rename"><span class="iconImg"></span><?php echo _("Rename") ?></a>
+ <a id="ctx_folder_empty"><span class="iconImg"></span><?php echo _("Empty") ?></a>
+ <a id="ctx_folder_delete"><span class="iconImg"></span><?php echo _("Delete") ?></a>
  <div class="sep"></div>
  <a id="ctx_folder_setflag"><span class="iconImg"></span><?php echo _("Mark all as") ?></a>
  <div class="sep"></div>
@@ -291,6 +293,10 @@ function _simpleButton($id, $text, $image, $nodisplay = false)
  <div class="sep"></div>
  <a id="ctx_folder_export"><span class="iconImg"></span><?php echo _("Export") ?></a>
  <a id="ctx_folder_import"><span class="iconImg"></span><?php echo _("Import") ?></a>
+ <div style="display:none">
+  <div class="sep"></div>
+  <a id="ctx_folder_acl"><span class="iconImg"></span><?php echo _("Edit ACL") ?></a>
+ </div>
 </div>
 
 <div class="context" id="ctx_folder_flag" style="display:none">
@@ -307,7 +313,7 @@ function _simpleButton($id, $text, $image, $nodisplay = false)
  <div class="folderName"></div>
  <div class="sep"></div>
  <a id="ctx_container_create"><span class="iconImg"></span><?php echo _("Create subfolder") ?></a>
- <a id="ctx_container_rename"><span class="iconImg"></span><?php echo _("Rename Folder") ?></a>
+ <a id="ctx_container_rename"><span class="iconImg"></span><?php echo _("Rename") ?></a>
  <div class="sep"></div>
  <a id="ctx_container_search"><span class="iconImg"></span><?php echo _("Search") ?></a>
  <a id="ctx_container_searchsub"><span class="iconImg"></span><?php echo _("Search All Subfolders") ?></a>
@@ -400,6 +406,8 @@ function _simpleButton($id, $text, $image, $nodisplay = false)
  <a id="ctx_forward_both"><span class="iconImg"></span><?php echo _("Attachment and Body Text") ?></a>
  <div class="sep"></div>
 <?php endif; ?>
+ <a id="ctx_forward_editasnew"><span class="iconImg"></span><?php echo _("Edit as New") ?></a>
+ <div class="sep"></div>
  <a id="ctx_forward_redirect"><span class="iconImg"></span><?php echo _("Redirect") ?></a>
 </div>
 
@@ -444,10 +452,22 @@ function _simpleButton($id, $text, $image, $nodisplay = false)
 
 <div class="context" id="ctx_sortopts" style="display:none;">
  <a id="oa_sort_from"><span class="iconImg"></span><?php echo _("From") ?></a>
+ <a id="oa_sort_to"><span class="iconImg"></span><?php echo _("To") ?></a>
  <a id="oa_sort_subject"><span class="iconImg"></span><?php echo _("Subject") ?></a>
  <a id="oa_sort_thread"><span class="iconImg"></span><?php echo _("Thread") ?></a>
  <a id="oa_sort_date"><span class="iconImg"></span><?php echo _("Date") ?></a>
  <a id="oa_sort_size"><span class="iconImg"></span><?php echo _("Size") ?></a>
+ <div class="sep"></div>
+ <a id="oa_sort_sequence"><span class="iconImg"></span><?php echo _("Arrival (No Sort)") ?></a>
+</div>
+
+<div class="context" id="ctx_subjectsort" style="display:none;">
+ <a id="ctx_subjectsort_thread"><div class="iconImg"></div><?php echo _("Thread Sort") ?></a>
+</div>
+
+<div class="context" id="ctx_datesort" style="display:none;">
+ <a id="ctx_datesort_sequence"><?php echo _("Arrival Time") ?></a>
+ <a id="ctx_datesort_date"><?php echo _("Message Date") ?></a>
 </div>
 
 <div class="context" id="ctx_filter" style="display:none">
@@ -464,18 +484,9 @@ function _simpleButton($id, $text, $image, $nodisplay = false)
  <a id="ctx_contacts_add"><span class="iconImg"></span><?php echo _("Add to Address Book") ?></a>
 </div>
 
-<div class="context" id="ctx_mboxsort" style="display:none">
- <a id="ctx_mboxsort_none"><?php echo _("Clear Sort") ?></a>
- <a id="ctx_mboxsort_none_toggle"><?php echo _("Toggle Sort Direction") ?></a>
-</div>
-
 <?php if ($imp_imap->access(IMP_Imap::ACCESS_SEARCH)): ?>
 <div class="context" id="ctx_qsearchopts" style="display:none">
  <a id="ctx_qsearchopts_by"><?php echo _("Search By") ?></a>
- <div class="sep"></div>
- <a id="ctx_qsearchopts_filter"><?php echo _("Filter By") ?></a>
- <a id="ctx_qsearchopts_flag"><?php echo _("Show Only") ?></a>
- <a id="ctx_qsearchopts_flagnot"><?php echo _("Don't Show") ?></a>
  <div class="sep"></div>
  <a id="ctx_qsearchopts_advanced"><?php echo _("Advanced Search...") ?></a>
 </div>
@@ -486,6 +497,12 @@ function _simpleButton($id, $text, $image, $nodisplay = false)
  <a id="ctx_qsearchby_from"><?php echo _("From") ?></a>
  <a id="ctx_qsearchby_recip"><?php echo _("Recipients (To/Cc/Bcc)") ?></a>
  <a id="ctx_qsearchby_subject"><?php echo _("Subject") ?></a>
+</div>
+
+<div class="context" id="ctx_filteropts" style="display:none">
+ <a id="ctx_filteropts_filter"><?php echo _("Filter By") ?></a>
+ <a id="ctx_filteropts_flag"><?php echo _("Show Only") ?></a>
+ <a id="ctx_filteropts_flagnot"><?php echo _("Don't Show") ?></a>
 </div>
 <?php endif; ?>
 
@@ -537,7 +554,7 @@ function _simpleButton($id, $text, $image, $nodisplay = false)
 <div id="msglistHeaderContainer">
  <div class="item msglistHeader" id="msglistHeaderHoriz" style="display:none">
   <div class="iconImg msgStatus">
-   <div class="iconImg msCheckAll msCheck" title="<?php echo _("Select All") ?>"></div>
+   <div class="iconImg msCheckAll msCheck" id="horiz_opts" title="<?php echo _("Select All") ?>"></div>
   </div>
   <div class="msgFrom sep"></div>
   <div class="msgSubject sep"></div>
@@ -549,7 +566,14 @@ function _simpleButton($id, $text, $image, $nodisplay = false)
    <div class="iconImg msCheckAll msCheck" title="<?php echo _("Select All") ?>"></div>
   </div>
   <div class="msgSort">
-   <a class="widget" id="vertical_sort">Sort</a>
+   <a class="widget" id="vertical_sort"><?php echo _("Sort") ?></a>
   </div>
  </div>
 </div>
+
+<?php
+Horde::includeScriptFiles();
+Horde::outputInlineScript();
+?>
+
+</body></html>

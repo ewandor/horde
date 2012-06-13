@@ -26,7 +26,7 @@
  *        Possible values: 'unix', 'win', 'netware'
  *        By default, we attempt to auto-detect type.</pre>
  *
- * Copyright 2002-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2002-2012 Horde LLC (http://www.horde.org/)
  * Copyright 2002-2007 Michael Varghese <mike.varghese@ascellatech.com>
  *
  * See the enclosed file COPYING for license information (LGPL). If you
@@ -38,6 +38,13 @@
  */
 class Horde_Vfs_Ftp extends Horde_Vfs_Base
 {
+    /**
+     * Hash containing connection parameters.
+     *
+     * @var array
+     */
+    protected $_params = array('port' => 21);
+
     /**
      * List of additional credentials required for this VFS backend.
      *
@@ -109,7 +116,7 @@ class Horde_Vfs_Ftp extends Horde_Vfs_Base
     {
         $this->_connect();
 
-        if (($size = @ftp_size($this->_stream, $this->_getPath($path, $name))) === false) {
+        if (($size = @ftp_size($this->_stream, $this->_getPath($path, $name))) === -1) {
             throw new Horde_Vfs_Exception(sprintf('Unable to check file size of "%s".', $this->_getPath($path, $name)));
         }
 
@@ -157,7 +164,6 @@ class Horde_Vfs_Ftp extends Horde_Vfs_Base
         if (!($localFile = Horde_Util::getTempFile('vfs'))) {
             throw new Horde_Vfs_Exception('Unable to create temporary file.');
         }
-        register_shutdown_function(create_function('', '@unlink(\'' . addslashes($localFile) . '\');'));
 
         $result = @ftp_get(
             $this->_stream,
@@ -168,6 +174,8 @@ class Horde_Vfs_Ftp extends Horde_Vfs_Base
         if ($result === false) {
             throw new Horde_Vfs_Exception(sprintf('Unable to open VFS file "%s".', $this->_getPath($path, $name)));
         }
+
+        clearstatcache();
 
         return $localFile;
     }
@@ -277,7 +285,8 @@ class Horde_Vfs_Ftp extends Horde_Vfs_Base
             $result = @ftp_chdir($this->_stream, $this->_getPath($path, $name));
 
             $this->_setPath($olddir);
-        } catch (Horde_Vfs_Exception $e) {}
+        } catch (Horde_Vfs_Exception $e) {
+        }
 
         return $result;
     }
@@ -304,16 +313,17 @@ class Horde_Vfs_Ftp extends Horde_Vfs_Base
         }
 
         if ($isDir) {
-            $file_list = $this->listFolder($this->_getPath($path, $name));
+            $dir = ltrim($path . '/' . $name, '/');
+            $file_list = $this->listFolder($dir);
             if (count($file_list) && !$recursive) {
                 throw new Horde_Vfs_Exception(sprintf('Unable to delete "%s", as the directory is not empty.', $this->_getPath($path, $name)));
             }
 
             foreach ($file_list as $file) {
                 if ($file['type'] == '**dir') {
-                    $this->deleteFolder($this->_getPath($path, $name), $file['name'], $recursive);
+                    $this->deleteFolder($dir, $file['name'], $recursive);
                 } else {
-                    $this->deleteFile($this->_getPath($path, $name), $file['name']);
+                    $this->deleteFile($dir, $file['name']);
                 }
             }
 
@@ -367,7 +377,7 @@ class Horde_Vfs_Ftp extends Horde_Vfs_Base
      *
      * @param string $path        The parent folder of the item.
      * @param string $name        The name of the item.
-     * @param string $permission  The permission to set.
+     * @param string $permission  The permission to set in octal notation.
      *
      * @throws Horde_Vfs_Exception
      */
@@ -415,6 +425,7 @@ class Horde_Vfs_Ftp extends Horde_Vfs_Base
         }
 
         $olddir = $this->getCurrentDirectory();
+        $path = $this->_getPath('', $path);
         if (strlen($path)) {
             $this->_setPath($path);
         }
@@ -430,7 +441,7 @@ class Horde_Vfs_Ftp extends Horde_Vfs_Base
                 $list = ftp_rawlist($this->_stream, '-l');
             }
         } else {
-           $list = ftp_rawlist($this->_stream, '');
+            $list = ftp_rawlist($this->_stream, '');
         }
 
         if (!is_array($list)) {
@@ -496,17 +507,17 @@ class Horde_Vfs_Ftp extends Horde_Vfs_Base
                     $file['name'] = substr($file['name'], 0, strpos($file['name'], '->') - 1);
                     $file['type'] = '**sym';
 
-                   if ($this->isFolder('', $file['link'])) {
-                       $file['linktype'] = '**dir';
-                   } else {
-                       $parts = explode('/', $file['link']);
-                       $name = explode('.', array_pop($parts));
-                       if (count($name) == 1 || ($name[0] === '' && count($name) == 2)) {
-                           $file['linktype'] = '**none';
-                       } else {
-                           $file['linktype'] = Horde_String::lower(array_pop($name));
-                       }
-                   }
+                    if ($this->isFolder('', $file['link'])) {
+                        $file['linktype'] = '**dir';
+                    } else {
+                        $parts = explode('/', $file['link']);
+                        $name = explode('.', array_pop($parts));
+                        if (count($name) == 1 || ($name[0] === '' && count($name) == 2)) {
+                            $file['linktype'] = '**none';
+                        } else {
+                            $file['linktype'] = Horde_String::lower(array_pop($name));
+                        }
+                    }
                 } elseif ($p1 === 'd') {
                     $file['type'] = '**dir';
                 } else {
@@ -559,10 +570,8 @@ class Horde_Vfs_Ftp extends Horde_Vfs_Base
                 }
 
                 $file['name'] = $item[7];
-                $index = 8;
-                while ($index < count($item)) {
+                for ($index = 8, $c = count($item); $index < $c; $index++) {
                     $file['name'] .= ' ' . $item[$index];
-                    $index++;
                 }
             } else {
                 /* Handle Windows FTP servers returning DOS-style file
@@ -571,10 +580,8 @@ class Horde_Vfs_Ftp extends Horde_Vfs_Base
                 $file['owner'] = '';
                 $file['group'] = '';
                 $file['name'] = $item[3];
-                $index = 4;
-                while ($index < count($item)) {
+                for ($index = 4, $c = count($item); $index < $c; $index++) {
                     $file['name'] .= ' ' . $item[$index];
-                    $index++;
                 }
                 $file['date'] = strtotime($item[0] . ' ' . $item[1]);
                 if ($item[2] == '<DIR>') {
@@ -687,6 +694,7 @@ class Horde_Vfs_Ftp extends Horde_Vfs_Base
                 throw new Horde_Vfs_Exception(sprintf('Failed to copy from "%s".', $orig));
             }
 
+            clearstatcache();
             $this->_checkQuotaWrite('file', $tmpFile);
 
             if (!@ftp_put($this->_stream, $this->_getPath($dest, $name), $tmpFile, FTP_BINARY)) {
@@ -742,6 +750,26 @@ class Horde_Vfs_Ftp extends Horde_Vfs_Base
     {
         $this->_connect();
         return @ftp_pwd($this->_stream);
+    }
+
+    /**
+     * Returns the full path of an item.
+     *
+     * @param string $path  The path of directory of the item.
+     * @param string $name  The name of the item.
+     *
+     * @return mixed  Full path when $path isset and just $name when not set.
+     */
+    protected function _getPath($path, $name)
+    {
+        if (strlen($this->_params['vfsroot'])) {
+            if (strlen($path)) {
+                $path = $this->_params['vfsroot'] . '/' . $path;
+            } else {
+                $path = $this->_params['vfsroot'];
+            }
+        }
+        return parent::_getPath($path, $name);
     }
 
     /**
@@ -837,6 +865,11 @@ class Horde_Vfs_Ftp extends Horde_Vfs_Base
         if (!empty($this->_params['timeout'])) {
             ftp_set_option($this->_stream, FTP_TIMEOUT_SEC, $this->_params['timeout']);
         }
-    }
 
+        if (!empty($this->_params['vfsroot']) &&
+            !@ftp_chdir($this->_stream, $this->_params['vfsroot']) &&
+            !@ftp_mkdir($this->_stream, $this->_params['vfsroot'])) {
+            throw new Horde_Vfs_Exception(sprintf('Unable to create VFS root directory "%s".', $this->_params['vfsroot']));
+        }
+    }
 }

@@ -3,16 +3,13 @@
  * Contacts selection page.
  *
  * URL parameters:
- *   - formfield: (string) Overrides the form field to fill on closing the
- *                window.
- *   - formname: (string) Name of the calling form (defaults to 'compose').
  *   - sa: (string) List of selected addresses.
  *   - search: (string) Search term (defaults to '' which lists everyone).
  *   - searched: (boolean) Indicates we have already searched at least once.
  *   - source: (string) The addressbook source to use.
  *   - to_only: (boolean) Are we limiting to only the 'To:' field?
  *
- * Copyright 2002-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2002-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -36,10 +33,6 @@ $source_list = $registry->call('contacts/sources');
 if (!isset($vars->source) || !isset($source_list[$vars->source])) {
     reset($source_list);
     $vars->source = key($source_list);
-}
-
-if (!isset($vars->formname)) {
-    $vars->formname = 'compose';
 }
 
 $search_params = IMP::getAddressbookSearchParams();
@@ -73,7 +66,6 @@ $template = $injector->createInstance('Horde_Template');
 $template->setOption('gettext', true);
 
 $template->set('action', Horde::url('contacts.php')->unique());
-$template->set('formname', $vars->formname);
 $template->set('formInput', Horde_Util::formInput());
 $template->set('search', htmlspecialchars($vars->search));
 if (count($source_list) > 1) {
@@ -101,17 +93,8 @@ foreach ($addresses as $addr) {
     }
 }
 $template->set('a_list', $a_list);
-$template->set('cc', intval(!$vars->to_only));
+$template->set('to_only', intval($vars->to_only));
 $template->set('sa', $selected_addresses);
-
-$js = array(
-    'ImpContacts.formname' => $vars->formname,
-    'ImpContacts.to_only' => intval($vars->to_only)
-);
-if (isset($vars->formfield)) {
-    $js['ImpContacts.formfield'] = $vars->formfield;
-}
-Horde::addInlineJsVars($js);
 
 /* Display the form. */
 $title = _("Address Book");

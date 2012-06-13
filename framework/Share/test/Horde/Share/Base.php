@@ -5,11 +5,12 @@
 require_once dirname(__FILE__) . '/Autoload.php';
 
 /**
+ * Copyright 2010-2012 Horde LLC (http://www.horde.org/)
+ *
  * @author     Jan Schneider <jan@horde.org>
  * @category   Horde
  * @package    Share
  * @subpackage UnitTests
- * @copyright  2010 Horde LLC (http://www.horde.org/)
  * @license    http://www.horde.org/licenses/lgpl21 LGPL 2.1
  */
 class Horde_Share_Test_Base extends Horde_Test_Case
@@ -580,6 +581,13 @@ class Horde_Share_Test_Base extends Horde_Test_Case
             $this->fail('Share "myshare" should be removed by now.');
         } catch (Horde_Exception_NotFound $e) {
         }
+    }
+
+    public function renameShare()
+    {
+        self::$share->renameShare(self::$shares['janeshare'], 'joeshare');
+        $this->assertArrayNotHasKey('janeshare', self::$share->listAllShares());
+        $this->assertArrayHasKey('joeshare', self::$share->listAllShares());
     }
 
     public function callback($share)

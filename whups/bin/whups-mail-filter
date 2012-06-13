@@ -56,7 +56,21 @@ function _dump($hash)
     return $dump;
 }
 
-require_once dirname(__FILE__) . '/../lib/Application.php';
+function _error()
+{
+    foreach (imap_errors() as $error) {
+        $GLOBALS['cli']->message($error, 'cli.warning');
+    }
+}
+
+if (file_exists(dirname(__FILE__) . '/../../whups/lib/Application.php')) {
+    $baseDir = dirname(__FILE__) . '/../';
+} else {
+    require_once 'PEAR/Config.php';
+    $baseDir = PEAR_Config::singleton()
+        ->get('horde_dir', null, 'pear.horde.org') . '/whups/';
+}
+require_once $baseDir . 'lib/Application.php';
 Horde_Registry::appInit('whups', array('cli' => true));
 
 // Set server name.
@@ -165,7 +179,7 @@ if (empty($mail['user'])) {
     }
 } else {
     $messages = array();
-    $imap = @imap_open(sprintf('{%s:%d/%s}%s',
+    $imap = imap_open(sprintf('{%s:%d/%s}%s',
                                $mail['host'],
                                $mail['port'],
                                $mail['protocol'],
@@ -174,7 +188,9 @@ if (empty($mail['user'])) {
     if (!$imap) {
         $cli->fatal(_("Cannot authenticate at mail server:") . ' ' . implode('; ', imap_errors()));
     }
+    _error();
     $mailbox = imap_search($imap, 'ALL', SE_UID);
+    _error();
     if ($mailbox) {
         foreach ($mailbox as $uid) {
             $message = imap_fetchheader($imap, $uid, FT_UID)
@@ -184,7 +200,7 @@ if (empty($mail['user'])) {
                 Whups_Mail::processMail($message, $info);
                 imap_delete($imap, $uid, FT_UID);
             } catch (Whups_Exception $e) {
-                $cli->message(_("Error processing message:") . ' ' . $result->getMessage() . ' ' . $result->getUserInfo(), 'cli.error');
+                $cli->message(_("Error processing message:") . ' ' . $e->getMessage(), 'cli.error');
             }
         }
     }

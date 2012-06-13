@@ -10,7 +10,7 @@
  *   'sd' = (integer) change sort: dir
  *   'search' = (sring) The search string
  *
- * Copyright 1999-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 1999-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -67,7 +67,7 @@ case 'u':
 // 'ri' = report innocent
 case 'rs':
 case 'ri':
-    IMP_Spam::reportSpam(new IMP_Indices($vars->indices), $vars->a == 'rs' ? 'spam' : 'innocent');
+    IMP_Spam::reportSpam(new IMP_Indices($vars->indices), $vars->a == 'rs' ? 'spam' : 'notspam');
     break;
 }
 
@@ -90,7 +90,7 @@ case 'c':
 
 // 's' = search
 case 's':
-    $title = sprintf(_("Search %s"), IMP::$mailbox->label);
+    $title = sprintf(_("Search %s"), IMP::$mailbox->display_html);
 
     $t->set('mailbox', IMP::$mailbox->form_to);
     $t->set('menu', $imp_ui_mimp->getMenu('search'));
@@ -123,7 +123,7 @@ $imp_mailbox = IMP::$mailbox->getListOb();
 $pageOb = $imp_mailbox->buildMailboxPage($vars->p, $vars->s);
 
 /* Generate page title. */
-$title = IMP::$mailbox->label;
+$title = IMP::$mailbox->display_html;
 
 /* Modify title for display on page. */
 if ($pageOb['msgcount']) {
@@ -165,7 +165,7 @@ while (list(,$ob) = each($mbox_info['overview'])) {
     /* Initialize the header fields. */
     $msg = array(
         'status' => '',
-        'subject' => trim($imp_ui->getSubject($ob['envelope']->subject)),
+        'subject' => htmlspecialchars(trim($imp_ui->getSubject($ob['envelope']->subject)), ENT_QUOTES, 'UTF-8'),
         'uid' => strval(new IMP_Indices($ob['mailbox'], $ob['uid']))
     );
 
@@ -222,16 +222,20 @@ $hdr_list = array(
     'hdr_thread' => array(_("Thread"), Horde_Imap_Client::SORT_THREAD)
 );
 foreach ($hdr_list as $key => $val) {
-    $sort_link = $mailbox->copy()->add(array('a' => 'c', 'sb' => $val[1]));
-    if ($sortpref['by'] == $val[1]) {
-        $t->set($key, $val[0] . ' <a href="' . strval($sort_link->add('sd', intval(!$sortpref['dir']))) . '">' . ($sortpref['dir'] ? '^' : 'v') . '</a>');
+    if ($sortpref['locked']) {
+        $t->set($key, $val[0]);
     } else {
-        $t->set($key, '<a href="' . $sort_link . '">' . $val[0] . '</a>');
+        $sort_link = $mailbox->copy()->add(array('a' => 'c', 'sb' => $val[1]));
+        if ($sortpref['by'] == $val[1]) {
+            $t->set($key, $val[0] . ' <a href="' . strval($sort_link->add('sd', intval(!$sortpref['dir']))) . '">' . ($sortpref['dir'] ? '^' : 'v') . '</a>');
+        } else {
+            $t->set($key, '<a href="' . $sort_link . '">' . $val[0] . '</a>');
+        }
     }
 }
 
 /* Add thread header entry. */
-if (!$search_mbox && IMP::$mailbox->access_sortthread) {
+if (!$search_mbox && !$sortpref['locked'] && IMP::$mailbox->access_sortthread) {
     if (is_null($imp_thread)) {
         $t->set('hdr_subject_minor', $t->get('hdr_thread'));
     } else {

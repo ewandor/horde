@@ -14,7 +14,7 @@
 /**
  * Twitter as recipient.
  *
- * Copyright 2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2011-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you did not
  * receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -26,7 +26,7 @@
  * @link     http://www.horde.org/libraries/Horde_Push
  */
 class Horde_Push_Recipient_Twitter
-implements Horde_Push_Recipient
+extends Horde_Push_Recipient_Base
 {
     /**
      * The twitter client.
@@ -36,25 +36,60 @@ implements Horde_Push_Recipient
     private $_twitter;
 
     /**
+     * A HTTP client.
+     *
+     * @var Horde_Http_Client
+     */
+    private $_client;
+
+    /**
      * Constructor.
      *
      * @param Horde_Service_Twitter $twitter The twitter client.
      */
-    public function __construct(Horde_Service_Twitter $twitter)
+    public function __construct(Horde_Service_Twitter $twitter,
+                                $client = null)
     {
         $this->_twitter = $twitter;
+        $this->_client = $client;
     }
 
     /**
      * Push content to the recipient.
      *
      * @param Horde_Push $content The content element.
+     * @param array      $options Additional options.
      *
-     * @return NULL
+     * @return string The result description.
      */
-    public function push(Horde_Push $content)
+    public function push(Horde_Push $content, $options = array())
     {
-        //@todo This is the trivial implementation. There may be no summary, it may be too long, etc.
-        $this->_twitter->statuses->update($content->getSummary());
+        $tweet = $content->getSummary();
+        if ($content->hasReferences() && strlen($tweet) < 116 &&
+            class_exists('Horde_Service_UrlShortener_Base') &&
+            $this->_client !== null) {
+            $shortener = new Horde_Service_UrlShortener_TinyUrl($this->_client);
+            foreach ($content->getReferences() as $reference) {
+                $tweet .= ' ' . $shortener->shorten($reference);
+                if (strlen($tweet) > 115) {
+                    break;
+                }
+            }
+        }
+        if ($content->hasTags()) {
+            foreach ($content->getTags() as $tag) {
+                if (strlen($tweet) + strlen($tag) < 139) {
+                    $tweet .= ' #' . $tag;
+                }
+            }
+        }
+        if (empty($options['pretend'])) {
+            $this->_twitter->statuses->update($tweet);
+            return 'Pushed tweet to twitter.';
+        } else {
+            return sprintf(
+                'Would push tweet "%s" to twitter.', $tweet
+            );
+        }
     }
 }

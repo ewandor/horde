@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2001-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2001-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -24,8 +24,7 @@ if (Kronolith::showAjaxView() && !(Horde_Util::getPost('import_ajax')) &&
 }
 
 if (!$conf['menu']['import_export']) {
-    require KRONOLITH_BASE . '/index.php';
-    exit;
+    Horde::url('', true)->redirect();
 }
 
 /* Importable file types. */
@@ -202,13 +201,13 @@ if (!$error && $import_format) {
             $cleanup = true;
             try {
                 if (!in_array($session->get('horde', 'import_data/import_cal'), array_keys(Kronolith::listCalendars(Horde_Perms::EDIT)))) {
-                    $notification->push(_("You do not have permission to add events to the selected calendar."), 'horde.error');
+                    $notification->push(_("You have specified an invalid calendar or you do not have permission to add events to the selected calendar."), 'horde.error');
                 } else {
                     $next_step = $data->nextStep($actionID, $param);
                     $cleanup = false;
                 }
             } catch (Exception $e) {
-                $notification->push(_("You have specified an invalid calendar."), 'horde.error');
+                $notification->push($e, 'horde.error');
             }
 
             if ($cleanup) {

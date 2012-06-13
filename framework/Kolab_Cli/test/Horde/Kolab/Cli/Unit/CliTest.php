@@ -20,7 +20,7 @@ require_once dirname(__FILE__) . '/../Autoload.php';
 /**
  * Test the CLI interface.
  *
- * Copyright 2010-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2010-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -45,6 +45,7 @@ extends Horde_Kolab_Cli_TestCase
 
     public function testUsage()
     {
+        setlocale(LC_MESSAGES, 'C');
         $_SERVER['argv'] = array(
             'klb',
             '--driver=mock',
@@ -86,7 +87,7 @@ extends Horde_Kolab_Cli_TestCase
             '--user=test',
             'folder'
         );
-        $this->assertRegExp('/\[  INFO  \] [0-9]+ ms/', $this->runCli());
+        $this->assertRegExp('/[0-9]+ ms/', $this->runCli());
     }
 
     public function testTimeMissing()

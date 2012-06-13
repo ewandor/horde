@@ -2,7 +2,7 @@
 /**
  * Factory for creating Horde_SessionHandler objects.
  *
- * Copyright 2010 Horde LLC <http://horde.org>
+ * Copyright 2010-2012 Horde LLC (http://www.horde.org/)
  *
  * @category Horde
  * @package  Core
@@ -43,18 +43,13 @@ class Horde_Core_Factory_SessionHandler extends Horde_Core_Factory_Injector
             $noset = true;
             break;
 
-        case 'ldap':
-            $params['ldap'] = $injector
-                ->getInstances('Horde_Core_Factory_Ldap')
-                ->create('horde', 'sessionhandler');
-            break;
-
         case 'memcache':
             $params['memcache'] = $injector->getInstance('Horde_Memcache');
             break;
 
         case 'sql':
-            $params['db'] = $injector->getInstance('Horde_Db_Adapter');
+            $factory = $injector->getInstance('Horde_Core_Factory_Db');
+            $params['db'] = $factory->createDb($factory->getConfig('sessionhandler'));
             break;
         }
 

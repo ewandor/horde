@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2007-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2007-2012 Horde LLC (http://www.horde.org/)
  *
  * Resources:
  * http://wezfurlong.org/blog/2006/nov/http-post-from-php-without-curl
@@ -62,6 +62,9 @@ class Horde_Http_Request_Fopen extends Horde_Http_Request_Base
                 // @TODO check $this->proxyAuthenticationScheme
                 $headers['Proxy-Authorization'] = 'Basic ' . base64_encode($this->proxyUsername . ':' . $this->proxyPassword);
             }
+            if ($this->proxyType != Horde_Http::PROXY_HTTP) {
+                throw new Horde_Http_Exception(sprintf('Proxy type %s not supported by this request type!', $this->proxyType));
+            }
         }
 
         // Authentication settings
@@ -89,6 +92,7 @@ class Horde_Http_Request_Fopen extends Horde_Http_Request_Base
         $opts['http']['content'] = $data;
         $opts['http']['timeout'] = $this->timeout;
         $opts['http']['max_redirects'] = $this->redirects;
+        $opts['http']['ignore_errors'] = true;
 
         $context = stream_context_create($opts);
         $stream = @fopen($uri, 'rb', false, $context);

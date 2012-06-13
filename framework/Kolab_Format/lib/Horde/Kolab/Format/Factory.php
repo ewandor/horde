@@ -14,7 +14,7 @@
 /**
  * A factory for generating Kolab format handlers.
  *
- * Copyright 2010-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2010-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you did not
  * receive this file, see
@@ -36,17 +36,10 @@ class Horde_Kolab_Format_Factory
     private $_params;
 
     /**
-     * Collect xml type instances already created.
-     *
-     * @var array
-     */
-    private $_xml_type_instances;
-
-    /**
      * Constructor.
      *
      * @param array $params Additional parameters for the creation of parsers.
-     */   
+     */
     public function __construct(array $params = array())
     {
         $this->_params = $params;
@@ -174,17 +167,14 @@ class Horde_Kolab_Format_Factory
         } else {
             $class = $type;
         }
-        if (!isset($this->_xml_type_instances[$class])) {
-            if (class_exists($class)) {
-                $this->_xml_type_instances[$class] = new $class($this);
-            } else if (class_exists($type)) {
-                $this->_xml_type_instances[$class] = new $type($this);
-            } else {
-                throw new Horde_Kolab_Format_Exception(
-                    sprintf('XML type %s not supported!', $type)
-                );
-            }
+        if (class_exists($class)) {
+            return new $class($this);
+        } else if (class_exists($type)) {
+            return new $type($this);
+        } else {
+            throw new Horde_Kolab_Format_Exception(
+                sprintf('XML type %s not supported!', $type)
+            );
         }
-        return $this->_xml_type_instances[$class];
     }
 }

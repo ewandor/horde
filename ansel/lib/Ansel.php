@@ -2,7 +2,7 @@
 /**
  * Ansel Base Class.
  *
- * Copyright 2001-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2001-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -484,6 +484,9 @@ class Ansel
      * Generate a list of breadcrumbs showing where we are in the gallery
      * tree.
      *
+     * @param Ansel_Gallery $gallery  The gallery the bread crumbs are for.
+     * @param stirng $separator       The separator text to use between crumbs.
+     *
      * @return string
      */
     static public function getBreadCrumbs($gallery = null, $separator = ' &raquo; ')
@@ -559,9 +562,10 @@ class Ansel
         // the path back to the top.  By constructing it backward we can treat
         // the last element (the current page) specially.
         $levels = 0;
-        $nav = '</span>';
-        $urlFlags = array('havesearch' => $haveSearch,
-                          'force_grouping' => true);
+        $nav = '';
+        $urlFlags = array(
+            'havesearch' => $haveSearch,
+            'force_grouping' => true);
 
         // Check for an active image
         if (!empty($image_id)) {
@@ -867,6 +871,7 @@ class Ansel
             $code['conf']['pixeluri'] = (string)Horde::getServiceLink('pixel', 'ansel');
             $code['conf']['markeruri'] = (string)Horde_Themes::img('photomarker.png');
             $code['conf']['shadowuri'] = (string)Horde_Themes::img('photomarker-shadow.png');
+            $code['conf']['havetwitter'] = !empty($GLOBALS['conf']['twitter']['enabled']);
             $code['ajax'] = new stdClass();
             $code['widgets'] = new stdClass();
             Horde::addInlineJsVars(array(
@@ -914,8 +919,6 @@ class Ansel
             case 'Mytopo':
                 $params['conf']['apikeys']['mytopo'] = $GLOBALS['conf']['api']['mytopo'];
                 break;
-            case 'Bing':
-                $params['conf']['apikeys']['bing'] = $GLOBALS['conf']['api']['bing'];
             }
         }
 

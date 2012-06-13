@@ -2,7 +2,7 @@
 /**
  * Preferences storage implementation for a SQL database.
  *
- * Copyright 1999-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 1999-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -90,6 +90,10 @@ class Horde_Prefs_Storage_Sql extends Horde_Prefs_Storage_Base
      */
     public function store($scope_ob)
     {
+        if (!$this->_db->isActive()) {
+            $this->_db->reconnect();
+        }
+
         $charset = $this->_db->getOption('charset');
 
         // For each preference, check for an existing table row and

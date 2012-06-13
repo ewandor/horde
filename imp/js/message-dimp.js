@@ -1,5 +1,5 @@
 /**
- * Copyright 2005-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2005-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -59,11 +59,18 @@ var DimpMessage = {
         var i, id,
             r = result.response;
 
-        if (r.imp_compose) {
-            $('composeCache').setValue(r.imp_compose);
-        }
+        switch (r.type) {
+        case 'forward_redirect':
+            if (r.imp_compose) {
+                $('composeCacheRedirect').setValue(r.imp_compose);
+            }
+            break;
 
-        if (r.type != 'forward_redirect') {
+        default:
+            if (r.imp_compose) {
+                $('composeCache').setValue(r.imp_compose);
+            }
+
             if (!r.opts) {
                 r.opts = {};
             }
@@ -75,7 +82,8 @@ var DimpMessage = {
 
             $('identity', 'last_identity').invoke('setValue', id);
 
-            DimpCompose.fillForm((i.id[2]) ? ("\n" + i.sig + r.body) : (r.body + "\n" + i.sig), r.header, r.opts);
+            DimpCompose.fillForm((i.id.sig_loc) ? ("\n" + i.sig + r.body) : (r.body + "\n" + i.sig), r.header, r.opts);
+            break;
         }
     },
 
@@ -170,7 +178,7 @@ var DimpMessage = {
                 tmp = {};
                 tmp[this.mbox] = [ this.uid ];
                 DimpCore.doAction('sendMDN', {
-                    uid: DimpCore.toRangeString(tmp)
+                    uid: DimpCore.toUIDString(tmp)
                 }, {
                     callback: function(r) {
                         if (r.response) {
@@ -233,7 +241,7 @@ var DimpMessage = {
     {
         var mb = $('msgData').down('DIV.messageBody');
 
-        mb.setStyle({ height: (document.viewport.getHeight() - mb.cumulativeOffset()[1] - parseInt(mb.getStyle('paddingTop'), 10) - parseInt(mb.getStyle('paddingBottom'), 10)) + 'px' });
+        mb.setStyle({ height: Math.max(document.viewport.getHeight() - mb.cumulativeOffset()[1] - parseInt(mb.getStyle('paddingTop'), 10) - parseInt(mb.getStyle('paddingBottom'), 10), 0) + 'px' });
     },
 
     onDomLoad: function()

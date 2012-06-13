@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2001-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2001-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -33,6 +33,8 @@ if ($form->validate()) {
         $url = $vars->get('url');
         if (empty($url)) {
             $url = Horde::url('view.php')->add('gallery', $gallery->id);
+        } else {
+            $url = Horde::url($url);
         }
         $url->redirect();
         exit;

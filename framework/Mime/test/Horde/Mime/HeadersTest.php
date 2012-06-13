@@ -2,7 +2,7 @@
 /**
  * Tests for the Horde_Mime_Headers class.
  *
- * Copyright 2010-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2010-2012 Horde LLC (http://www.horde.org/)
  *
  * @author     Michael Slusarz <slusarz@horde.org>
  * @category   Horde
@@ -60,4 +60,49 @@ class Horde_Mime_HeadersTest extends PHPUnit_Framework_TestCase
         );
     }
 
+    public function testHeaderAutoDetectCharset()
+    {
+        $hdrs = Horde_Mime_Headers::parseHeaders(
+            // This string is in Windows-1252
+            'Test: ' . base64_decode('UnVubmVyc5IgQWxlcnQh=')
+        );
+
+        $this->assertEquals(
+            'Runners’ Alert!',
+            $hdrs->getValue('Test')
+        );
+    }
+
+    public function testMultipleContentType()
+    {
+        $hdrs = Horde_Mime_Headers::parseHeaders(
+            "Content-Type: multipart/mixed\n" .
+            "Content-Type: multipart/mixed\n"
+        );
+
+        $this->assertInternalType(
+            'string',
+            $hdrs->getValue('content-type', Horde_Mime_Headers::VALUE_BASE)
+        );
+    }
+
+    public function testMultivalueHeaders()
+    {
+        $hdrs = Horde_Mime_Headers::parseHeaders(
+"To: recipient1@example.com, recipient2@example.com"
+        );
+        $this->assertEquals(
+            'recipient1@example.com, recipient2@example.com',
+            $hdrs->getValue('to')
+        );
+
+        $hdrs = Horde_Mime_Headers::parseHeaders(
+"To: recipient1@example.com
+To: recipient2@example.com"
+        );
+        $this->assertEquals(
+            'recipient1@example.com, recipient2@example.com',
+            $hdrs->getValue('to')
+        );
+    }
 }

@@ -1,7 +1,45 @@
 ----------
-v2.0.1-git
+v2.0.3-git
 ----------
 
+
+
+------
+v2.0.2
+------
+
+[jan] Don't show user name and password fields on login page if not required.
+[jan] Display 'loginparams' on login screen (Bug #11088).
+[jan] Fix removing filter (Bug #11043).
+[jan] Update Japanese translation (Hiromi Kimura <hiromi@tac.tsukuba.ac.jp>).
+
+
+------
+v2.0.1
+------
+
+[mms] Fix selectlist widget when initial cacheID was not given (Bug #10781).
+[mms] Fix icon display of files in selectlist widget.
+[jan] Fix downloading of file types without a MIME viewer (Bug #10709).
+[jan] Fix autocreating of home folders (Bug #10690).
+[jan] Fix JavaScript for Actions drop down list (Bug #10695).
+
+
+----
+v2.0
+----
+
+[jan] Fix corruption of downloaded files (Bug #8481).
+[jan] Catch if VFS backend doesn't support size() (Bug #10637).
+[mms] Fix editing text files.
+
+
+--------
+v2.0-RC1
+--------
+
+[jan] Fix usage of createhome parameter (Bug #10592).
+[mms] Fix display of 'columnselect' preference (Bug #10628).
 [jan] Don't require login for login-less VFS backends.
 
 

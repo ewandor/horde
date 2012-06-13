@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 /**
- * Copyright 2003-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2003-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -174,7 +174,7 @@ function send_agendas()
         try {
             $mime_mail->send($GLOBALS['injector']->getInstance('Horde_Mail'));
         } catch (Horde_Mime_Exception $e) {
-            die($e);
+            Horde::logMessage(sprintf('Error sending daily agenda to %s: %s', $email, $e->getMessage()), 'WARN');
         }
     }
 }

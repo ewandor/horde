@@ -3,10 +3,10 @@
  * The Turba_View_Browse class provides the logic for browsing lists
  * of contacts.
  *
- * Copyright 2000-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2000-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file LICENSE for license information (ASL).  If you did
- * did not receive this file, see http://www.horde.org/licenses/asl.php.
+ * did not receive this file, see http://www.horde.org/licenses/apache.
  *
  * @author  Chuck Hagenbuch <chuck@horde.org>
  * @package Turba
@@ -130,17 +130,17 @@ class Turba_View_Browse
                     }
                     if (!$errorCount) {
                         $notification->push(
-                            sprintf(_("Successfully deleted %d contact(s)."),
+                            sprintf(ngettext("Successfully deleted %d contact.", "Successfully deleted %d contacts.", count($keys)),
                                 count($keys)),
                             'horde.success');
                     } elseif (count($keys) == $errorCount) {
                         $notification->push(
-                            sprintf(_("Error deleting %d contact(s)."),
+                            sprintf(ngettext("Error deleting %d contact.", "Error deleting %d contacts.", count($keys)),
                                 count($keys)),
                             'horde.error');
                     } else {
                         $notification->push(
-                            sprintf(_("Error deleting %d of %d requested contacts(s)."),
+                            sprintf(ngettext("Error deleting %d of %d requested contact.", "Error deleting %d of %d requested contacts.", count($keys)),
                                 $errorCount,
                                 count($keys)),
                             'horde.error');
@@ -333,7 +333,10 @@ class Turba_View_Browse
                         $errorCount = 0;
                         foreach ($keys as $sourceKey) {
                             list($objectSource, $objectKey) = explode(':', $sourceKey, 2);
-                            if (!$target->addMember($objectKey, $objectSource)) {
+                            try {
+                                $target->addMember($objectKey, $objectSource);
+                            } catch (Turba_Exception $e) {
+                                $notification->push($e, 'horde.error');
                                 $errorCount++;
                             }
                         }
@@ -397,7 +400,10 @@ class Turba_View_Browse
                                     $errorCount = 0;
                                     foreach ($keys as $sourceKey) {
                                         list($objectSource, $objectKey) = explode(':', $sourceKey, 2);
-                                        if (!$target->addMember($objectKey, $objectSource)) {
+                                        try {
+                                            $target->addMember($objectKey, $objectSource);
+                                        } catch (Turba_Exception $e) {
+                                            $notification->push($e, 'horde.error');
                                             ++$errorCount;
                                         }
                                     }
@@ -462,7 +468,7 @@ class Turba_View_Browse
                     try {
                         $results = $list->listMembers($sortorder);
                         if (count($results) != $list->count()) {
-                            $count = count($list) - count($results);
+                            $count = $list->count() - count($results);
                             $notification->push(
                                 sprintf(ngettext("There is %d contact in this list that is not viewable to you",
                                                  "There are %d contacts in this list that are not viewable to you", $count),

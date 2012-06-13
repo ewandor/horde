@@ -27,7 +27,7 @@
  *
  * [base = (Element) The element to use for display positioning purposes]
  *
- * Copyright 2005-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2005-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -127,6 +127,7 @@ var KeyNavList = Class.create({
         if (!Object.isUndefined(list)) {
             this.update(list);
         } else if (this.div.visible()) {
+            this.hide();
             return;
         }
 
@@ -173,7 +174,7 @@ var KeyNavList = Class.create({
         /* Need to do width second - horizontal scrolling might add scroll
          * bar. */
         if ((divL.get('border-box-width') + dl + off.left + 5) > v.width) {
-            dl = (v.width - divL.get('border-box-width') - off.left - 5);
+            dl = Math.max(0, (v.width - divL.get('border-box-width') - off.left - 5));
             this.div.setStyle({ left: dl + 'px' });
         }
 

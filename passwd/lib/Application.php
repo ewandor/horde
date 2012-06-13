@@ -5,7 +5,7 @@
  * This file brings in all of the dependencies that every Passwd script will
  * need, and sets up objects that all scripts use.
  *
- * Copyright 2002-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2002-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.php.
@@ -37,7 +37,7 @@ class Passwd_Application extends Horde_Registry_Application {
     /**
      * The version of passwd as shown in the admin view
      */
-    public $version = 'H4 (4.0.1-git)';
+    public $version = 'H4 (4.0.2-git)';
 
     /**
      */

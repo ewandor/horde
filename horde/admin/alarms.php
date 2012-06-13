@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2007-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2007-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -59,7 +59,7 @@ if ($form->validate()) {
 
     // Full path to any sound files.
     if (!empty($params['notify']['sound'])) {
-        $params['notify']['sound'] = $registry->get('themesuri', 'horde') . '/sounds/' . $params['notify']['sound'];
+        $params['notify']['sound'] = (string)Horde_Themes::sound($params['notify']['sound']);
     }
 
     try {

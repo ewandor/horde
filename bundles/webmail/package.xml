@@ -10,10 +10,10 @@
   <email>jan@horde.org</email>
   <active>yes</active>
  </lead>
- <date>2011-09-21</date>
- <time>16:48:39</time>
+ <date>2012-05-29</date>
+ <time>19:16:35</time>
  <version>
-  <release>4.0.4</release>
+  <release>4.0.9</release>
   <api>4.0.0</api>
  </version>
  <stability>
@@ -88,63 +88,63 @@
    <package>
     <name>content</name>
     <channel>pear.horde.org</channel>
-    <min>1.0.2</min>
+    <min>1.0.3</min>
     <max>2.0.0</max>
     <exclude>2.0.0</exclude>
    </package>
    <package>
     <name>horde</name>
     <channel>pear.horde.org</channel>
-    <min>4.0.9</min>
+    <min>4.0.15</min>
     <max>5.0.0</max>
     <exclude>5.0.0</exclude>
    </package>
    <package>
     <name>imp</name>
     <channel>pear.horde.org</channel>
-    <min>5.0.13</min>
+    <min>5.0.21</min>
     <max>6.0.0</max>
     <exclude>6.0.0</exclude>
    </package>
    <package>
     <name>ingo</name>
     <channel>pear.horde.org</channel>
-    <min>2.0.5</min>
+    <min>2.0.8</min>
     <max>3.0.0</max>
     <exclude>3.0.0</exclude>
    </package>
    <package>
     <name>kronolith</name>
     <channel>pear.horde.org</channel>
-    <min>3.0.10</min>
+    <min>3.0.17</min>
     <max>4.0.0</max>
     <exclude>4.0.0</exclude>
    </package>
    <package>
     <name>mnemo</name>
     <channel>pear.horde.org</channel>
-    <min>3.0.2</min>
+    <min>3.0.6</min>
     <max>4.0.0</max>
     <exclude>4.0.0</exclude>
    </package>
    <package>
     <name>nag</name>
     <channel>pear.horde.org</channel>
-    <min>3.0.3</min>
+    <min>3.0.8</min>
     <max>4.0.0</max>
     <exclude>4.0.0</exclude>
    </package>
    <package>
     <name>timeobjects</name>
     <channel>pear.horde.org</channel>
-    <min>1.0.2</min>
+    <min>1.0.7</min>
     <max>2.0.0</max>
     <exclude>2.0.0</exclude>
    </package>
    <package>
     <name>turba</name>
     <channel>pear.horde.org</channel>
-    <min>3.0.9</min>
+    <min>3.0.14</min>
     <max>4.0.0</max>
     <exclude>4.0.0</exclude>
    </package>
@@ -244,7 +244,7 @@
    <date>2011-08-02</date>
    <license uri="http://www.horde.org/licenses/">OSI certified</license>
    <notes>
-* 
+* [jan] Update Horde, IMP, Turba, Ingo, and Kronolith.
    </notes>
   </release>
   <release>
@@ -257,6 +257,7 @@
    <date>2011-09-21</date>
    <license uri="http://www.horde.org/licenses/">OSI certified</license>
    <notes>
+* [jan] Update Horde, IMP, Ingo, Turba, Kronolith, and Content.
 * [jan] Fix German title of tasks portal block (Bug #10486).
    </notes>
   </release>
@@ -267,7 +268,72 @@
    <stability>
     <release>stable</release>
     <api>stable</api></stability>
-   <date>2011-09-21</date>
+   <date>2011-11-23</date>
+   <license uri="http://www.horde.org/licenses/">OSI certified</license>
+   <notes>
+* [jan] Update Horde, IMP, Ingo, Turba, Kronolith, and Nag.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>4.0.5</release>
+    <api>4.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-12-13</date>
+   <license uri="http://www.horde.org/licenses/">OSI certified</license>
+   <notes>
+* [jan] Update Horde, IMP, Ingo, Kronolith, Nag, and Mnemo.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>4.0.6</release>
+    <api>4.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-01-17</date>
+   <license uri="http://www.horde.org/licenses/">OSI certified</license>
+   <notes>
+* [jan] Update IMP, Turba, and Kronolith.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>4.0.7</release>
+    <api>4.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-04-11</date>
+   <license uri="http://www.horde.org/licenses/">OSI certified</license>
+   <notes>
+* [jan] Update Horde, IMP, Turba, Kronolith, Mnemo, and Timeobjects.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>4.0.8</release>
+    <api>4.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-05-29</date>
+   <license uri="http://www.horde.org/licenses/">OSI certified</license>
+   <notes>
+* [jan] Update Horde, IMP, Ingo, Turba, Kronolith, Nag, Mnemo, and Timeobjects.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>4.0.9</release>
+    <api>4.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-05-29</date>
    <license uri="http://www.horde.org/licenses/">OSI certified</license>
    <notes>
 * 

@@ -22,10 +22,10 @@
   <email>slusarz@horde.org</email>
   <active>yes</active>
  </lead>
- <date>2011-09-20</date>
- <time>14:35:59</time>
+ <date>2012-04-10</date>
+ <time>19:47:22</time>
  <version>
-  <release>1.0.2</release>
+  <release>1.0.6</release>
   <api>1.0.0</api>
  </version>
  <stability>
@@ -34,10 +34,17 @@
  </stability>
  <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
  <notes>
-* [jan] Use portable queries in SQL session handler (Bug #10574).
+* 
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
+   <dir name="doc">
+    <dir name="Horde">
+     <dir name="SessionHandler">
+      <file name="COPYING" role="doc" />
+     </dir> <!-- /doc/Horde/SessionHandler -->
+    </dir> <!-- /doc/Horde -->
+   </dir> <!-- /doc -->
    <dir name="lib">
     <dir name="Horde">
      <dir name="SessionHandler">
@@ -62,6 +69,33 @@
      </dir> <!-- /migration/Horde/SessionHandler -->
     </dir> <!-- /migration/Horde -->
    </dir> <!-- /migration -->
+   <dir name="test">
+    <dir name="Horde">
+     <dir name="SessionHandler">
+      <dir name="Storage">
+       <dir name="Sql">
+        <dir name="Pdo">
+         <file name="MysqlTest.php" role="test" />
+         <file name="PgsqlTest.php" role="test" />
+         <file name="SqliteTest.php" role="test" />
+        </dir> <!-- /test/Horde/SessionHandler/Storage/Sql/Pdo -->
+        <file name="Base.php" role="test" />
+        <file name="MysqliTest.php" role="test" />
+        <file name="MysqlTest.php" role="test" />
+       </dir> <!-- /test/Horde/SessionHandler/Storage/Sql -->
+       <file name="Base.php" role="test" />
+       <file name="BuiltinTest.php" role="test" />
+       <file name="ExternalTest.php" role="test" />
+       <file name="FileTest.php" role="test" />
+       <file name="MemcacheTest.php" role="test" />
+       <file name="StackTest.php" role="test" />
+      </dir> <!-- /test/Horde/SessionHandler/Storage -->
+      <file name="AllTests.php" role="test" />
+      <file name="Autoload.php" role="test" />
+      <file name="conf.php.dist" role="test" />
+     </dir> <!-- /test/Horde/SessionHandler -->
+    </dir> <!-- /test/Horde -->
+   </dir> <!-- /test -->
   </dir> <!-- / -->
  </contents>
  <dependencies>
@@ -113,6 +147,7 @@
  </dependencies>
  <phprelease>
   <filelist>
+   <install as="COPYING" name="doc/Horde/SessionHandler/COPYING" />
    <install as="Horde/SessionHandler.php" name="lib/Horde/SessionHandler.php" />
    <install as="Horde/SessionHandler/Exception.php" name="lib/Horde/SessionHandler/Exception.php" />
    <install as="Horde/SessionHandler/Storage.php" name="lib/Horde/SessionHandler/Storage.php" />
@@ -123,6 +158,21 @@
    <install as="Horde/SessionHandler/Storage/Sql.php" name="lib/Horde/SessionHandler/Storage/Sql.php" />
    <install as="Horde/SessionHandler/Storage/Stack.php" name="lib/Horde/SessionHandler/Storage/Stack.php" />
    <install as="migration/1_horde_sessionhandler_base_tables.php" name="migration/Horde/SessionHandler/1_horde_sessionhandler_base_tables.php" />
+   <install as="Horde/SessionHandler/AllTests.php" name="test/Horde/SessionHandler/AllTests.php" />
+   <install as="Horde/SessionHandler/Autoload.php" name="test/Horde/SessionHandler/Autoload.php" />
+   <install as="Horde/SessionHandler/conf.php.dist" name="test/Horde/SessionHandler/conf.php.dist" />
+   <install as="Horde/SessionHandler/Storage/Base.php" name="test/Horde/SessionHandler/Storage/Base.php" />
+   <install as="Horde/SessionHandler/Storage/BuiltinTest.php" name="test/Horde/SessionHandler/Storage/BuiltinTest.php" />
+   <install as="Horde/SessionHandler/Storage/ExternalTest.php" name="test/Horde/SessionHandler/Storage/ExternalTest.php" />
+   <install as="Horde/SessionHandler/Storage/FileTest.php" name="test/Horde/SessionHandler/Storage/FileTest.php" />
+   <install as="Horde/SessionHandler/Storage/MemcacheTest.php" name="test/Horde/SessionHandler/Storage/MemcacheTest.php" />
+   <install as="Horde/SessionHandler/Storage/StackTest.php" name="test/Horde/SessionHandler/Storage/StackTest.php" />
+   <install as="Horde/SessionHandler/Storage/Sql/Base.php" name="test/Horde/SessionHandler/Storage/Sql/Base.php" />
+   <install as="Horde/SessionHandler/Storage/Sql/MysqliTest.php" name="test/Horde/SessionHandler/Storage/Sql/MysqliTest.php" />
+   <install as="Horde/SessionHandler/Storage/Sql/MysqlTest.php" name="test/Horde/SessionHandler/Storage/Sql/MysqlTest.php" />
+   <install as="Horde/SessionHandler/Storage/Sql/Pdo/MysqlTest.php" name="test/Horde/SessionHandler/Storage/Sql/Pdo/MysqlTest.php" />
+   <install as="Horde/SessionHandler/Storage/Sql/Pdo/PgsqlTest.php" name="test/Horde/SessionHandler/Storage/Sql/Pdo/PgsqlTest.php" />
+   <install as="Horde/SessionHandler/Storage/Sql/Pdo/SqliteTest.php" name="test/Horde/SessionHandler/Storage/Sql/Pdo/SqliteTest.php" />
   </filelist>
  </phprelease>
  <changelog>
@@ -286,10 +336,64 @@ Initial release as a PEAR package
    <stability>
     <release>stable</release>
     <api>stable</api></stability>
-   <date>2011-09-20</date>
+   <date>2011-10-11</date>
    <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
    <notes>
 * [jan] Use portable queries in SQL session handler (Bug #10574).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.0.3</release>
+    <api>1.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-01-31</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* [jan] Fix transaction error when reconnecting to database during session writing (Bug #10906).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.0.4</release>
+    <api>1.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-02-22</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* [jan] Don&apos;t start transaction more than once in SQL driver (Bug #10978).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.0.5</release>
+    <api>1.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-04-10</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* [jan] Fix SQL driver with PostgreSQL.
+* [jan] Fix reading sessions with the External driver.
+* [jan] Add test suite.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.0.6</release>
+    <api>1.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-04-10</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* 
    </notes>
   </release>
  </changelog>

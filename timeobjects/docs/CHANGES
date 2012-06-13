@@ -1,7 +1,48 @@
 ----------
-v1.0.3-git
+v1.0.8-git
 ----------
 
+
+
+------
+v1.0.7
+------
+
+[jan] Add Swedish translation (Jakob Alvermark <jakob.alvermark@bsdlabs.com>).
+[jan] Add Hungarian translation (Zoltán Németh <nemeth.zoltan@etit.hu>).
+
+
+------
+v1.0.6
+------
+
+[mjr] Always provide the longest forecast length available for weather
+      forecast data.
+[mjr] No longer attempt to create a Horde_Service_Weather provider if we do not
+      have one configured.
+
+
+------
+v1.0.5
+------
+
+[jan] Add Dutch translation (Arjen de Korte <arjen+horde@de-korte.org>).
+[jan] Update Japanese translation (Hiromi Kimura <hiromi@tac.tsukuba.ac.jp>).
+
+
+------
+v1.0.4
+------
+
+[jan] Fix retrieving driver list if Horde_Service packages are not installed.
+
+
+------
+v1.0.3
+------
+
+[mjr] Remove support for the now non-existent weatherdotcom API.
+[mjr] Add support for Horde_Service_Weather.
 [jan] Add Latvian translation (Jānis Eisaks <jancs@dv.lv>).
 [jan] Add Estonian translation (Alar Sing <alar.sing@err.ee>).
 

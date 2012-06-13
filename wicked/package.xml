@@ -2,7 +2,7 @@
 <package packagerversion="1.9.2" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
  <name>wicked</name>
  <channel>pear.horde.org</channel>
- <summary>A wiki application</summary>
+ <summary>Wiki application</summary>
  <description>Wicked is a wiki application for Horde.</description>
  <lead>
   <name>Jan Schneider</name>
@@ -16,20 +16,19 @@
   <email>chuck@horde.org</email>
   <active>yes</active>
  </lead>
- <date>2011-10-06</date>
- <time>22:34:26</time>
+ <date>2011-12-13</date>
+ <time>13:35:12</time>
  <version>
-  <release>1.0.0RC1</release>
-  <api>1.0.0RC1</api>
+  <release>1.0.2</release>
+  <api>1.0.0</api>
  </version>
  <stability>
-  <release>alpha</release>
-  <api>alpha</api>
+  <release>stable</release>
+  <api>stable</api>
  </stability>
  <license uri="http://www.horde.org/licenses/gpl">GPL-2.0</license>
  <notes>
-* [jan] Fix links to add new pages on pages with non-ascii names (Bug #10612).
-* [gwr] Support rendering bold text and code section in the rst renderer.
+* 
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
@@ -203,6 +202,7 @@
        <file name="Freelink.php" role="horde" />
        <file name="Heading.php" role="horde" />
        <file name="Links.php" role="horde" />
+       <file name="List.php" role="horde" />
        <file name="Newline.php" role="horde" />
        <file name="Paragraph.php" role="horde" />
        <file name="Raw.php" role="horde" />
@@ -284,6 +284,12 @@
       <file name="wicked.po" role="horde" />
      </dir> <!-- /locale/pt_BR/LC_MESSAGES -->
     </dir> <!-- /locale/pt_BR -->
+    <dir name="sk">
+     <dir name="LC_MESSAGES">
+      <file name="wicked.mo" role="horde" />
+      <file name="wicked.po" role="horde" />
+     </dir> <!-- /locale/sk/LC_MESSAGES -->
+    </dir> <!-- /locale/sk -->
     <dir name="sl">
      <dir name="LC_MESSAGES">
       <file name="wicked.mo" role="horde" />
@@ -738,6 +744,7 @@
    <install as="wicked/lib/Text_Wiki/Render/Rst/Freelink.php" name="lib/Text_Wiki/Render/Rst/Freelink.php" />
    <install as="wicked/lib/Text_Wiki/Render/Rst/Heading.php" name="lib/Text_Wiki/Render/Rst/Heading.php" />
    <install as="wicked/lib/Text_Wiki/Render/Rst/Links.php" name="lib/Text_Wiki/Render/Rst/Links.php" />
+   <install as="wicked/lib/Text_Wiki/Render/Rst/List.php" name="lib/Text_Wiki/Render/Rst/List.php" />
    <install as="wicked/lib/Text_Wiki/Render/Rst/Newline.php" name="lib/Text_Wiki/Render/Rst/Newline.php" />
    <install as="wicked/lib/Text_Wiki/Render/Rst/Paragraph.php" name="lib/Text_Wiki/Render/Rst/Paragraph.php" />
    <install as="wicked/lib/Text_Wiki/Render/Rst/Raw.php" name="lib/Text_Wiki/Render/Rst/Raw.php" />
@@ -775,6 +782,8 @@
    <install as="wicked/locale/lv/LC_MESSAGES/wicked.po" name="locale/lv/LC_MESSAGES/wicked.po" />
    <install as="wicked/locale/pt_BR/LC_MESSAGES/wicked.mo" name="locale/pt_BR/LC_MESSAGES/wicked.mo" />
    <install as="wicked/locale/pt_BR/LC_MESSAGES/wicked.po" name="locale/pt_BR/LC_MESSAGES/wicked.po" />
+   <install as="wicked/locale/sk/LC_MESSAGES/wicked.mo" name="locale/sk/LC_MESSAGES/wicked.mo" />
+   <install as="wicked/locale/sk/LC_MESSAGES/wicked.po" name="locale/sk/LC_MESSAGES/wicked.po" />
    <install as="wicked/locale/sl/LC_MESSAGES/wicked.mo" name="locale/sl/LC_MESSAGES/wicked.mo" />
    <install as="wicked/locale/sl/LC_MESSAGES/wicked.po" name="locale/sl/LC_MESSAGES/wicked.po" />
    <install as="wicked/locale/uk/LC_MESSAGES/wicked.mo" name="locale/uk/LC_MESSAGES/wicked.mo" />
@@ -871,13 +880,55 @@
     <release>1.0.0RC1</release>
     <api>1.0.0RC1</api></version>
    <stability>
-    <release>alpha</release>
-    <api>alpha</api></stability>
-   <date>2011-10-06</date>
+    <release>beta</release>
+    <api>beta</api></stability>
+   <date>2011-10-11</date>
    <license uri="http://www.horde.org/licenses/gpl">GPL-2.0</license>
    <notes>
+* [jan] Fix rendering attached images with Mediawiki syntax (Bug #10570).
 * [jan] Fix links to add new pages on pages with non-ascii names (Bug #10612).
 * [gwr] Support rendering bold text and code section in the rst renderer.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.0.0</release>
+    <api>1.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-10-27</date>
+   <license uri="http://www.horde.org/licenses/gpl">GPL-2.0</license>
+   <notes>
+* [jan] Fix links to existing pages with non-ascii or special characters (Bug #10672).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.0.1</release>
+    <api>1.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-12-13</date>
+   <license uri="http://www.horde.org/licenses/gpl">GPL-2.0</license>
+   <notes>
+* [gwr] Corrected teletype format for the reST renderer.
+* [gwr] Support rendering lists in the reST renderer.
+* [jan] Add Slovak translation (Martin Matuška &lt;martin@matuska.org&gt;).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.0.2</release>
+    <api>1.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-12-13</date>
+   <license uri="http://www.horde.org/licenses/gpl">GPL-2.0</license>
+   <notes>
+* 
    </notes>
   </release>
  </changelog>

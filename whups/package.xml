@@ -16,26 +16,19 @@
   <email>jan@horde.org</email>
   <active>yes</active>
  </lead>
- <date>2011-10-10</date>
- <time>16:11:08</time>
+ <date>2012-02-28</date>
+ <time>12:49:19</time>
  <version>
-  <release>2.0.0RC1</release>
-  <api>2.0.0RC1</api>
+  <release>2.0.3</release>
+  <api>2.0.0</api>
  </version>
  <stability>
-  <release>alpha</release>
-  <api>alpha</api>
+  <release>stable</release>
+  <api>stable</api>
  </stability>
- <license uri="http://www.horde.org/licenses/bsdl.php">BSD</license>
+ <license uri="http://www.horde.org/licenses/bsdl.php">BSD-2-Clause</license>
  <notes>
-* [jan] Don&apos;t create stray update and assign permission (Bug #10624).
-* [jan] Add script to convert backends to UTF-8.
-* [jan] Fix executing queries on non-UTF-8 backends.
-* [jan] Add index to whups_attributes table.
-* [jan] Fix using custom SQL configurations.
-* [jan] Fix fatal error when updating address book preferences (Bug #10567).
-* [jan] Don&apos;t access protected properties in the addTicket/updateTicket API methods (Bug #10566).
-* [jan] Fix adding comments as a guest (Bug #10559).
+* [jan] Improve error reporting in whups-mail-filter.
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
@@ -193,9 +186,6 @@
     <dir name="Query">
      <file name="Manager.php" role="horde" />
     </dir> <!-- /lib/Query -->
-    <dir name="Scheduler">
-     <file name="Whups.php" role="horde" />
-    </dir> <!-- /lib/Scheduler -->
     <dir name="tests">
      <file name="ApiTest.php" role="horde" />
      <file name="TestBase.php" role="horde" />
@@ -218,6 +208,7 @@
     <file name="Mail.php" role="horde" />
     <file name="Query.php" role="horde" />
     <file name="Reports.php" role="horde" />
+    <file name="Scheduler.php" role="horde" />
     <file name="Ticket.php" role="horde" />
     <file name="Whups.php" role="horde" />
    </dir> <!-- /lib -->
@@ -284,6 +275,10 @@
      </dir> <!-- /locale/lt/LC_MESSAGES -->
     </dir> <!-- /locale/lt -->
     <dir name="lv">
+     <dir name="LC_MESSAGES">
+      <file name="whups.mo" role="horde" />
+      <file name="whups.po" role="horde" />
+     </dir> <!-- /locale/lv/LC_MESSAGES -->
      <file name="help.xml" role="horde" />
     </dir> <!-- /locale/lv -->
     <dir name="nb">
@@ -599,7 +594,7 @@
    <package>
     <name>Horde_Scheduler</name>
     <channel>pear.horde.org</channel>
-    <min>1.0.0</min>
+    <min>1.0.1</min>
     <max>2.0.0</max>
     <exclude>2.0.0</exclude>
    </package>
@@ -704,6 +699,7 @@
    <install as="whups/lib/Mail.php" name="lib/Mail.php" />
    <install as="whups/lib/Query.php" name="lib/Query.php" />
    <install as="whups/lib/Reports.php" name="lib/Reports.php" />
+   <install as="whups/lib/Scheduler.php" name="lib/Scheduler.php" />
    <install as="whups/lib/Ticket.php" name="lib/Ticket.php" />
    <install as="whups/lib/Whups.php" name="lib/Whups.php" />
    <install as="whups/lib/Ajax/Imple/ContactAutoCompleter.php" name="lib/Ajax/Imple/ContactAutoCompleter.php" />
@@ -784,7 +780,6 @@
    <install as="whups/lib/LoginTasks/SystemTask/Upgrade.php" name="lib/LoginTasks/SystemTask/Upgrade.php" />
    <install as="whups/lib/Mime/Viewer/Zip.php" name="lib/Mime/Viewer/Zip.php" />
    <install as="whups/lib/Query/Manager.php" name="lib/Query/Manager.php" />
-   <install as="whups/lib/Scheduler/Whups.php" name="lib/Scheduler/Whups.php" />
    <install as="whups/lib/tests/ApiTest.php" name="lib/tests/ApiTest.php" />
    <install as="whups/lib/tests/TestBase.php" name="lib/tests/TestBase.php" />
    <install as="whups/lib/Ui/VarRenderer/Whups.php" name="lib/Ui/VarRenderer/Whups.php" />
@@ -817,6 +812,8 @@
    <install as="whups/locale/lt/LC_MESSAGES/whups.mo" name="locale/lt/LC_MESSAGES/whups.mo" />
    <install as="whups/locale/lt/LC_MESSAGES/whups.po" name="locale/lt/LC_MESSAGES/whups.po" />
    <install as="whups/locale/lv/help.xml" name="locale/lv/help.xml" />
+   <install as="whups/locale/lv/LC_MESSAGES/whups.mo" name="locale/lv/LC_MESSAGES/whups.mo" />
+   <install as="whups/locale/lv/LC_MESSAGES/whups.po" name="locale/lv/LC_MESSAGES/whups.po" />
    <install as="whups/locale/nb/LC_MESSAGES/whups.mo" name="locale/nb/LC_MESSAGES/whups.mo" />
    <install as="whups/locale/nb/LC_MESSAGES/whups.po" name="locale/nb/LC_MESSAGES/whups.po" />
    <install as="whups/locale/nl/LC_MESSAGES/whups.mo" name="locale/nl/LC_MESSAGES/whups.mo" />
@@ -919,7 +916,7 @@
     <api>alpha</api>
    </stability>
    <date>2011-09-27</date>
-   <license uri="http://www.horde.org/licenses/bsdl.php">BSD</license>
+   <license uri="http://www.horde.org/licenses/bsdl.php">BSD-2-Clause</license>
    <notes>
 * First alpha release for Horde 4.
    </notes>
@@ -929,10 +926,10 @@
     <release>2.0.0RC1</release>
     <api>2.0.0RC1</api></version>
    <stability>
-    <release>alpha</release>
-    <api>alpha</api></stability>
-   <date>2011-10-10</date>
-   <license uri="http://www.horde.org/licenses/bsdl.php">BSD</license>
+    <release>beta</release>
+    <api>beta</api></stability>
+   <date>2011-10-11</date>
+   <license uri="http://www.horde.org/licenses/bsdl.php">BSD-2-Clause</license>
    <notes>
 * [jan] Don&apos;t create stray update and assign permission (Bug #10624).
 * [jan] Add script to convert backends to UTF-8.
@@ -942,6 +939,82 @@
 * [jan] Fix fatal error when updating address book preferences (Bug #10567).
 * [jan] Don&apos;t access protected properties in the addTicket/updateTicket API methods (Bug #10566).
 * [jan] Fix adding comments as a guest (Bug #10559).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>2.0.0RC2</release>
+    <api>2.0.0RC2</api></version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api></stability>
+   <date>2011-10-18</date>
+   <license uri="http://www.horde.org/licenses/bsdl.php">BSD-2-Clause</license>
+   <notes>
+* [jan] Support more complex attributes types (Bug #9947).
+* [jan] Fix displaying form errors from updating tickets.
+* [jan] Allow to create private comments during ticket creation (Request #8312).
+* [jan] Fix addTicket API method.
+* [jan] Add missing default value for whups_priorities.priority_default column (Bug #10631).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>2.0.0</release>
+    <api>2.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-10-27</date>
+   <license uri="http://www.horde.org/licenses/bsdl.php">BSD-2-Clause</license>
+   <notes>
+* [jan] Fix rendering of attributes if a ticket&apos;s type has changed.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>2.0.1</release>
+    <api>2.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-12-13</date>
+   <license uri="http://www.horde.org/licenses/bsdl.php">BSD-2-Clause</license>
+   <notes>
+* [jan] Fix some CLI scripts if run from a PEAR installation (Bug #10839).
+* [jan] Automatically create parent permissions when adding the first restricted comment.
+* [jan] Ignore messages from postmaster too when processing mails.
+* [jan] Add setting to use different addresses for Return-Path: and From: headers.
+* [jan] Fix whups-reminders script (Bug #10783).
+* [jan] Add Latvian translation (Jānis Eisaks).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>2.0.2</release>
+    <api>2.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-02-28</date>
+   <license uri="http://www.horde.org/licenses/bsdl.php">BSD-2-Clause</license>
+   <notes>
+* [jan] Fix saving portal blocks.
+* [jan] Fix deleting queries (Bug #10985).
+* [jan] Fix encoding of auto-completion results (Bug #10945).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>2.0.3</release>
+    <api>2.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-02-28</date>
+   <license uri="http://www.horde.org/licenses/bsdl.php">BSD-2-Clause</license>
+   <notes>
+* [jan] Improve error reporting in whups-mail-filter.
    </notes>
   </release>
  </changelog>

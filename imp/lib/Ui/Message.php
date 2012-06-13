@@ -3,7 +3,7 @@
  * The IMP_Ui_Message:: class is designed to provide a place to store common
  * code shared among IMP's various UI views for the message page.
  *
- * Copyright 2006-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2006-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -98,7 +98,7 @@ class IMP_Ui_Message
 
             try {
                 $res = $imp_imap->fetch($mailbox, $query, array(
-                    'ids' => new Horde_Imap_Client_Ids($uid)
+                    'ids' => $imp_imap->getIdsOb($uid)
                 ));
                 $mdn_sent = in_array('$mdnsent', $res[$uid]->getFlags());
             } catch (IMP_Imap_Exception $e) {}
@@ -169,7 +169,7 @@ class IMP_Ui_Message
             (date('d') != $date->format('d'))) {
             /* Not today, use the date. */
             $date_str = strftime($GLOBALS['prefs']->getValue('date_format'), strval($date));
-            return sprintf('%s %s %s', $date_str, $time_str, $tz);
+            return sprintf('%s (%s %s)', $date_str, $time_str, $tz);
         }
 
         /* Else, it's today, use the time only. */
@@ -423,9 +423,9 @@ class IMP_Ui_Message
     }
 
     /**
-     * Redirect to mailbox after deleting a message?
+     * Increment mailbox index after deleting a message?
      *
-     * @return boolean  Return to mailbox?
+     * @return boolean  If true, increments index.
      */
     public function moveAfterAction()
     {

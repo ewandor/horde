@@ -164,14 +164,15 @@ $_prefs['filter'] = array(
 
 $prefGroups['compose'] = array(
     'column' => _("Compose"),
-    'label' => _("Message Composition"),
+    'label' => _("Composition"),
     'desc' => _("Configure how you send mail."),
     'members' => array(
         'mailto_handler', 'compose_cc', 'compose_bcc', 'compose_spellcheck',
         'set_priority', 'compose_html', 'compose_html_font_family',
         'compose_html_font_size', 'mail_domain',
         'compose_cursor', 'encryptselect', 'save_attachments',
-        'delete_attachments_monthly_keep', 'request_mdn'
+        'delete_attachments_monthly_keep', 'request_mdn',
+        'reply_lang'
     )
 );
 
@@ -292,7 +293,6 @@ $_prefs['delete_attachments_monthly_keep'] = array(
     'help' => 'prefs-delete_attachments_monthly_keep'
 );
 
-
 // Disposition Notification Preferences
 $_prefs['request_mdn'] = array(
     'value' => 'ask',
@@ -304,6 +304,17 @@ $_prefs['request_mdn'] = array(
     ),
     'desc' => _("Request read receipts?"),
     'help' => 'prefs-request_mdn'
+);
+
+// The preferred languages for replies to sent messages.
+$_prefs['reply_lang'] = array(
+    // 'value' => serialize(array())
+    'value' => 'a:0:{}',
+    'advanced' => true,
+    'type' => 'multienum',
+    // Language list is automatically generated
+    'enum' => array(),
+    'desc' => _("What language(s) do you prefer replies to your messages to be in? (Hold down the CTRL key when clicking to add multiple languages)")
 );
 
 // The list of buttons to show in CKeditor
@@ -343,7 +354,7 @@ $_prefs['stationery'] = array(
 
 $prefGroups['reply'] = array(
     'column' => _("Compose"),
-    'label' => _("Message Replies"),
+    'label' => _("Replies"),
     'desc' => _("Configure how you reply to mail."),
     'members' => array(
         'reply_quote', 'reply_format', 'reply_headers', 'attrib_text'
@@ -388,7 +399,7 @@ $_prefs['attrib_text'] = array(
 
 $prefGroups['forward'] = array(
     'column' => _("Compose"),
-    'label' => _("Message Forwards"),
+    'label' => _("Forwards"),
     'desc' => _("Configure how you forward mail."),
     'members' => array('forward_default', 'forward_format')
 );
@@ -419,11 +430,11 @@ $_prefs['forward_format'] = array(
 
 
 
-// *** Message Drafts Preferences ***
+// *** Drafts Preferences ***
 
 $prefGroups['drafts'] = array(
     'column' => _("Compose"),
-    'label' => _("Message Drafts"),
+    'label' => _("Drafts"),
     'desc' => _("Manage message drafts."),
     'members' => array(
         'draftsselect', 'close_draft', 'unseen_drafts', 'auto_save_drafts'
@@ -528,7 +539,7 @@ $_prefs['purge_sentmail_keep'] = array(
 
 $prefGroups['viewing'] = array(
     'column' => _("Message"),
-    'label' => _("Message Viewing"),
+    'label' => _("Viewing"),
     'desc' => _("Configure how messages are displayed."),
     'members' => array(
         'filtering', 'strip_attachments', 'alternative_display',
@@ -690,8 +701,9 @@ $prefGroups['delmove'] = array(
     'label' => _("Deleting and Moving Messages"),
     'desc' => _("Set preferences for what happens when you move and delete messages."),
     'members' => array(
-        'mailbox_return', 'use_trash', 'trashselect', 'empty_trash_menu',
-        'purge_trash_interval', 'purge_trash_keep'
+        'mailbox_return', 'delete_mark_seen', 'use_trash', 'trashselect',
+        'delhide_trash', 'empty_trash_menu', 'purge_trash_interval',
+        'purge_trash_keep'
     )
 );
 
@@ -700,6 +712,14 @@ $_prefs['mailbox_return'] = array(
     'value' => 0,
     'type' => 'checkbox',
     'desc' => _("Return to the mailbox listing after deleting, moving, or copying a message?")
+);
+
+// should messages be marked as 'Seen' when deleted?
+$_prefs['delete_mark_seen'] = array(
+    'value' => 0,
+    'advanced' => true,
+    'type' => 'checkbox',
+    'desc' => _("Mark messages as Seen when deleting?")
 );
 
 // should we move messages to a trash folder instead of just marking
@@ -726,6 +746,19 @@ $_prefs['trash_folder'] = array(
     'value' => Horde_String::convertCharset('Trash', 'UTF-8', 'UTF7-IMAP')
     // Exchange servers use this default value instead.
     // 'value' => 'Deleted Items'
+);
+
+// hide deleted when using a Trash mailbox. This REALLY should be disabled;
+// other clients may not be configured the same as IMP so it is very
+// dangerous to hide messages that still exist in the mailbox (enabling Trash
+// indicates that the user wants to ignore the \Deleted flag in IMP).
+$_prefs['delhide_trash'] = array(
+    // Disabled and locked by default
+    'value' => 0,
+    'locked' => true,
+    'advanced' => true,
+    'type' => 'checkbox',
+    'desc' => _("Hide deleted messages even if using the Trash mailbox?")
 );
 
 // display the 'Empty Trash' link in the menubar?
@@ -888,7 +921,7 @@ $_prefs['newmail_soundselect'] = array(
 
 $prefGroups['flags'] = array(
     'column' => _("Message"),
-    'label' => _("Message Flags"),
+    'label' => _("Flags"),
     'desc' => _("Configure flag highlighting."),
     'members' => array('flagmanagement', 'show_all_flags')
 );

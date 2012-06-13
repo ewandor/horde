@@ -2,7 +2,7 @@
 /**
  * Browse view (for files).
  *
- * Copyright 1999-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 1999-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -22,9 +22,10 @@ if ($atdir) {
     exit;
 }
 
-$onb = Horde_Util::getFormData('onb', $VC->getDefaultBranch());
+$onb = Horde_Util::getFormData('onb');
 try {
-    $fl = $VC->getFileObject($where, array('branch' => $onb));
+    $fl = $VC->getFile($where, array('branch' => $onb));
+    $fl->applySort(Horde_Vcs::SORT_AGE);
 } catch (Horde_Vcs_Exception $e) {
     Chora::fatal($e);
 }
@@ -32,21 +33,19 @@ try {
 $title = $where;
 
 $extraLink = Chora::getFileViews($where, 'browsefile');
-$logs = $fl->queryLogs();
+$logs = $fl->getLog();
 $first = end($logs);
-$diffValueLeft = $first->queryRevision();
-$diffValueRight = $fl->queryRevision();
+$diffValueLeft = $first->getRevision();
+$diffValueRight = $fl->getRevision();
 
 $sel = '';
-foreach ($fl->querySymbolicRevisions() as $sm => $rv) {
+foreach ($fl->getTags() as $sm => $rv) {
     $sel .= '<option value="' . $rv . '">' . $sm . '</option>';
 }
 
-$selAllBranches = '';
+$branches = array();
 if ($VC->hasFeature('branches')) {
-    foreach (array_keys($fl->queryBranches()) as $sym) {
-        $selAllBranches .= '<option value="' . $sym . '"' . (($sym === $onb) ? ' selected="selected"' : '' ) . '>' . $sym . '</option>';
-    }
+    $branches = $fl->getBranches();
 }
 
 Horde::addScriptFile('revlog.js', 'chora');
@@ -61,12 +60,12 @@ echo '<div class="commit-list">';
 
 reset($logs);
 foreach ($logs as $log) {
-    $day = date('Y-m-d', $log->queryDate());
+    $day = date('Y-m-d', $log->getDate());
     if ($day != $currentDay) {
         echo '<h3>' . $day . '</h3>';
         $currentDay = $day;
     }
-    echo $view->renderPartial('app/views/logMessage', array('object' => $log));
+    echo $view->renderPartial('app/views/logMessage', array('object' => $log->toHash()));
 }
 
 echo '</div>';

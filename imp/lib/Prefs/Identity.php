@@ -4,7 +4,7 @@
  * user might have. Its methods take care of any site-specific
  * restrictions configured in prefs.php and conf.php.
  *
- * Copyright 2001-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2001-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -33,6 +33,17 @@ class Imp_Prefs_Identity extends Horde_Core_Prefs_Identity
     );
 
     /**
+     * Identity preferences added by IMP.
+     *
+     * @var array
+     */
+    protected $_impPrefs = array(
+        'replyto_addr', 'alias_addr', 'tieto_addr', 'bcc_addr', 'signature',
+        'signature_html', 'sig_first', 'sig_dashes', 'save_sent_mail',
+        'sent_mail_folder'
+    );
+
+    /**
      * Reads all the user's identities from the prefs object or builds
      * a new identity from the standard values given in prefs.php.
      *
@@ -40,16 +51,12 @@ class Imp_Prefs_Identity extends Horde_Core_Prefs_Identity
      */
     public function __construct($params)
     {
-        parent::__construct($params);
-
         $this->_prefnames['properties'] = array_merge(
             $this->_prefnames['properties'],
-            array(
-                'replyto_addr', 'alias_addr', 'tieto_addr', 'bcc_addr',
-                'signature', 'signature_html', 'sig_first', 'sig_dashes',
-                'save_sent_mail', 'sent_mail_folder'
-            )
+            $this->_impPrefs
         );
+
+        parent::__construct($params);
     }
 
     /**
@@ -61,11 +68,18 @@ class Imp_Prefs_Identity extends Horde_Core_Prefs_Identity
      */
     public function verify($identity = null)
     {
-        parent::verify($identity);
-
         if (!isset($identity)) {
             $identity = $this->_default;
         }
+
+        /* Fill missing IMP preferences with default values. */
+        foreach ($this->_impPrefs as $pref) {
+            if (!isset($this->_identities[$identity][$pref])) {
+                $this->_identities[$identity][$pref] = $this->_prefs->getValue($pref);
+            }
+        }
+
+        parent::verify($identity);
 
         /* Prepare email validator */
         require_once 'Horde/Form.php';
@@ -127,17 +141,15 @@ class Imp_Prefs_Identity extends Horde_Core_Prefs_Identity
         }
 
         try {
-            $ob = Horde_Mime_Address::parseAddressList($address, array('defserver' => $GLOBALS['session']->get('imp', 'maildomain')));
+            $ob = $this->_getAddrList($address);
         } catch (Horde_Mime_Exception $e) {
             throw new Horde_Exception (_("Your From address is not a valid email address. This can be fixed in your Personal Information preferences page."));
         }
 
         if (empty($name)) {
-            if (!empty($ob[0]['personal'])) {
-                $name = $ob[0]['personal'];
-            } else {
-                $name = $this->getFullname($ident);
-            }
+            $name = empty($ob[0]['personal'])
+                ? $this->getFullname($ident)
+                : $ob[0]['personal'];
         }
 
         $from = Horde_Mime_Address::writeAddress($ob[0]['mailbox'], $ob[0]['host'], $name);
@@ -337,7 +349,7 @@ class Imp_Prefs_Identity extends Horde_Core_Prefs_Identity
                 $bcc = array($bcc);
             }
             try {
-                return Horde_Mime_Address::parseAddressList(implode(', ', $bcc));
+                return $this->_getAddrList(implode(', ', $bcc));
             } catch (Horde_Mime_Exception $e) {
                 return array();
             }
@@ -364,14 +376,12 @@ class Imp_Prefs_Identity extends Horde_Core_Prefs_Identity
         }
 
         /* Normalize address list. */
-        if (is_array($addresses)) {
-            $addresses = array_filter($addresses);
-        } else {
-            $addresses = array($addresses);
-        }
+        $addresses = is_array($addresses)
+            ? array_filter($addresses)
+            : array($addresses);
 
         try {
-            $addr_list = Horde_Mime_Address::parseAddressList(implode(', ', $addresses));
+            $addr_list = $this->_getAddrList(implode(', ', $addresses));
         } catch (Horde_Mime_Exception $e) {
             return null;
         }
@@ -481,7 +491,7 @@ class Imp_Prefs_Identity extends Horde_Core_Prefs_Identity
                 $val = IMP_Compose::text2html(trim($val));
             }
 
-            $val = '<div class="impComposeSignature">' . $val . '</div>';
+            $val = '<p>&nbsp;</p><div class="impComposeSignature">' . $val . '</div>';
         }
 
         try {
@@ -578,6 +588,20 @@ class Imp_Prefs_Identity extends Horde_Core_Prefs_Identity
         return $GLOBALS['injector']->getInstance('IMP_Factory_Imap')->create()->access(IMP_Imap::ACCESS_FOLDERS)
             ? $this->getValue('save_sent_mail', $ident)
             : false;
+    }
+
+    /**
+     * Return a domain-appropriate address list.
+     *
+     * @param string $in  The input string.
+     *
+     * @return array  See Horde_Mime_Address::parseAddressList().
+     */
+    protected function _getAddrList($in)
+    {
+        return Horde_Mime_Address::parseAddressList($in, array(
+            'defserver' => $GLOBALS['session']->get('imp', 'maildomain')
+        ));
     }
 
 }

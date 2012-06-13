@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright 2001-2002 Robert E. Coyle <robertecoyle@hotmail.com>
- * Copyright 2001-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2001-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file LICENSE for license information (BSD). If you
  * did not receive this file, see http://www.horde.org/licenses/bsdl.php.
@@ -79,10 +79,10 @@ class Whups
         case 'queue':
             if ($rewrite) {
                 if (is_array($data)) {
-                    if (isset($data['slug'])) {
-                        $slug = $data['slug'];
+                    if (empty($data['slug'])) {
+                        $slug = (int)$data['id'];
                     } else {
-                        $slug = $data['id'];
+                        $slug = $data['slug'];
                     }
                 } else {
                     $slug = (int)$data;

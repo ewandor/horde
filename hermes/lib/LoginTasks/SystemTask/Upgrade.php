@@ -2,7 +2,7 @@
 /**
  * Login system task for automated upgrade tasks.
  *
- * Copyright 2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2011-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (BSD). If you
  * did not receive this file, see http://www.horde.org/licenses/bsdl.php.
@@ -52,9 +52,7 @@ class Hermes_LoginTasks_SystemTask_Upgrade extends Horde_Core_LoginTasks_SystemT
     protected function _upgradePausedTimers()
     {
         $timers = @unserialize($GLOBALS['prefs']->getValue('running_timers'));
-        if (!empty($timers)) {
-            $timers = @unserialize($timers);
-        } else {
+        if (!is_array($timers)) {
             $timers = array();
         };
 

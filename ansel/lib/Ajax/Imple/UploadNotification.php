@@ -3,7 +3,7 @@
  * Ansel_Ajax_Imple_UploadNotification:: class provides an API for sending
  * notification to various services after uploading images to a gallery.
  *
- * Copyright 2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2011-2012 Horde LLC (http://www.horde.org/)
  *
  * @author Michael J. Rubinsky <mrubinsk@horde.org>
  * @package Ansel
@@ -32,13 +32,15 @@ class Ansel_Ajax_Imple_UploadNotification extends Horde_Core_Ajax_Imple
                 'view',
                 array('view' => 'Gallery', 'gallery' => $gallery->id),
                 true);
-            try {
-                $url = $GLOBALS['injector']
-                    ->getInstance('Horde_Service_UrlShortener')
-                    ->shorten($url->setRaw(true));
-            } catch (Horde_Service_UrlShortener_Exception $e) {
-                Horde::logMessage($e, 'ERR');
-                header('HTTP/1.1 500');
+            if (!empty($GLOBALS['conf']['urlshortener'])) {
+                try {
+                    $url = $GLOBALS['injector']
+                        ->getInstance('Horde_Service_UrlShortener')
+                        ->shorten($url->setRaw(true));
+                } catch (Horde_Service_UrlShortener_Exception $e) {
+                    Horde::logMessage($e, 'ERR');
+                    header('HTTP/1.1 500');
+                }
             }
             $text = sprintf(_("New images uploaded to %s. %s"), $gallery->get('name'), $url);
             $twitter = $this->_getTwitterObject();

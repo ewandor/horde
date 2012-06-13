@@ -19,7 +19,7 @@
  * @todo Rename from Horde_Kolab_Session_Base ->
  * Horde_Kolab_Session_Ldap at some point.
  *
- * Copyright 2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2011-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -117,7 +117,7 @@ class Horde_Kolab_Session_Imap extends Horde_Kolab_Session_Abstract
                 'username' => $user_id,
                 'password' => $password,
                 'port'     => $port,
-                'secure'   => true
+                'secure'   => 'tls'
             )
         );
 

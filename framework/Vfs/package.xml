@@ -4,7 +4,7 @@
  <channel>pear.horde.org</channel>
  <extends>VFS</extends>
  <summary>Virtual File System API</summary>
- <description>This package provides a Virtual File System API, with backends for:
+ <description>A Virtual File System API, with backends for:
 
 * SQL
 * FTP
@@ -27,10 +27,10 @@ Reading, writing and listing of files are all supported, and there are both obje
   <email>jan@horde.org</email>
   <active>yes</active>
  </lead>
- <date>2011-09-30</date>
- <time>12:32:28</time>
+ <date>2012-03-20</date>
+ <time>10:49:27</time>
  <version>
-  <release>1.0.6</release>
+  <release>1.0.10</release>
   <api>1.0.0</api>
  </version>
  <stability>
@@ -39,9 +39,7 @@ Reading, writing and listing of files are all supported, and there are both obje
  </stability>
  <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
  <notes>
-* [mms] Fix using File driver if vfsroot directory already exists (Bug #10584).
-* [mms] Fix internal reference to QUOTA_METRIC_* constants (Bug #10585).
-* [jan] Fix parsing of directory listings on /dev file systems in the SSH driver.
+* 
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
@@ -891,12 +889,72 @@ Added a class for providing garbage collection; removed all Horde dependancies.
    <stability>
     <release>stable</release>
     <api>stable</api></stability>
-   <date>2011-09-30</date>
+   <date>2011-10-11</date>
    <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
    <notes>
+* [jan] Fix setting permissions with File driver (Bug #10630).
 * [mms] Fix using File driver if vfsroot directory already exists (Bug #10584).
 * [mms] Fix internal reference to QUOTA_METRIC_* constants (Bug #10585).
 * [jan] Fix parsing of directory listings on /dev file systems in the SSH driver.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.0.7</release>
+    <api>1.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-10-18</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* [jan] Fix reading file sizes from Samba backends.
+* [jan] Catch output from smbclient during error conditions (Bug #10638).
+* [jan] Implement size() method in Samba driver.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.0.8</release>
+    <api>1.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-11-08</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* [gwr] Make unit tests timezone independent.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.0.9</release>
+    <api>1.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-03-20</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* [jan] Fix inconsistent behavior of the different backend drivers.
+* [jan] Fix double unlink() of temporary files.
+* [jan] Fix ignored $dotfolder argument for listFolders() in SQL driver.
+* [jan] Fix several issues with quota calculation.
+* [jan] Fix recursive listFolder() on base directory.
+* [jan] Fix calculating folder sizes with similar folder names in SQL driver.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.0.10</release>
+    <api>1.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-03-20</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* 
    </notes>
   </release>
  </changelog>

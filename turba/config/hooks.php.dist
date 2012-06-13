@@ -28,7 +28,7 @@ class Turba_Hooks
 //         switch ($attribute) {
 //         case 'password':
 //             /* Passwords should be MD5 encoded, but not displayed. */
-//             return (is_null($new) || ($new == '') || ($new == '[Not Displayed']))
+//             return (is_null($new) || ($new == '') || ($new == '[Not Displayed]'))
 //                 ? $old
 //                 : hash('md5', $new);
 //         }
@@ -41,8 +41,7 @@ class Turba_Hooks
      * Called when we display a value.
      *
      * @param string $attribute      Attribute name.
-     * @param string $new            New value.
-     * @param string $old            Old value.
+     * @param mixed $value           Attribute value.
      * @param Turba_Object $contact  Contact object.
      *
      * @return string  The decoded value.

@@ -6,6 +6,7 @@
  */
 
 var ImpSearch = {
+
     // The following variables are defined in search.php:
     //   data, i_criteria, i_folders, i_recent, text
     criteria: {},
@@ -47,12 +48,17 @@ var ImpSearch = {
             var crit = c.criteria;
 
             switch (c.element) {
+            case 'IMP_Search_Element_Attachment':
+                this.insertFilter('attach', crit);
+                break;
+
             case 'IMP_Search_Element_Bulk':
                 this.insertFilter('bulk', crit);
                 break;
 
             case 'IMP_Search_Element_Date':
-                this.insertDate(this.data.constants.index(crit.t), new Date(crit.d));
+                // JS Date() requires timestamp in ms; PHP value is in secs
+                this.insertDate(this.data.constants.date.index(crit.t), new Date(crit.d * 1000));
                 break;
 
             case 'IMP_Search_Element_Flag':
@@ -100,7 +106,7 @@ var ImpSearch = {
                 break;
 
             case 'IMP_Search_Element_Within':
-                this.insertWithin(crit.o ? 'older' : 'younger', { l: this.data.constants.index(crit.t), v: crit.v });
+                this.insertWithin(crit.o ? 'older' : 'younger', { l: this.data.constants.within.index(crit.t), v: crit.v });
                 break;
             }
         }, this);
@@ -227,24 +233,25 @@ var ImpSearch = {
 
     insertDate: function(id, data)
     {
-        if (!data) {
-            data = new Date();
-        }
-
         var tmp = [
                 new Element('EM').insert(this.getCriteriaLabel(id)),
-                new Element('SPAN').insert(new Element('SPAN')).insert(new Element('A', { href: '#', className: 'calendarPopup', title: this.text.dateselection }).insert(new Element('SPAN', { className: 'iconImg searchuiImg searchuiCalendar' })))
+                new Element('SPAN').insert(new Element('SPAN')).insert(new Element('A', { href: '#', className: 'calendarPopup', title: this.text.dateselection }).insert(new Element('SPAN', { className: 'iconImg searchuiImg calendarImg' })))
             ];
         this.replaceDate(this.insertCriteria(tmp), id, data);
     },
 
     replaceDate: function(id, type, d)
     {
-        $(id).down('SPAN SPAN').update(this.data.months[d.getMonth()] + ' ' + d.getDate() + ', ' + (d.getYear() + 1900));
+        if (!d) {
+            d = new Date();
+        }
+
+        $(id).down('SPAN SPAN').update(this.data.months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear());
         // Need to store date information at all times in criteria, since we
-        // have no other way to track this information (there is not form
-        // field for this type).
-        this.criteria[id] = { t: type, v: d };
+        // have no other way to track this information (there is no form
+        // field for this type). Also, convert Date object to a UTC object,
+        // since JSON outputs in UTC.
+        this.criteria[id] = { t: type, v: new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())) };
     },
 
     insertWithin: function(id, data)
@@ -517,6 +524,17 @@ var ImpSearch = {
                 }
                 return;
 
+            case 'show_unsub':
+                new Ajax.Request(this.ajaxurl + 'searchMailboxList', {
+                    onSuccess: this.showUnsubCallback.bind(this),
+                    parameters: {
+                        unsub: 1
+                    }
+                });
+                elt.remove();
+                e.stop();
+                return;
+
             default:
                 if (elt.hasClassName('searchuiDelete')) {
                     if (elt.up('#search_criteria')) {
@@ -526,7 +544,7 @@ var ImpSearch = {
                     }
                     e.stop();
                     return;
-                } else if (elt.hasClassName('searchuiCalendar')) {
+                } else if (elt.hasClassName('calendarImg')) {
                     Horde_Calendar.open(elt.identify(), this.criteria[elt.up('DIV.searchId').identify()].v);
                     e.stop();
                     return;
@@ -598,11 +616,21 @@ var ImpSearch = {
         e.stop();
     },
 
-
     calendarSelectHandler: function(e)
     {
         var id = e.findElement('DIV.searchId').identify();
         this.replaceDate(id, this.criteria[id].t, e.memo);
+    },
+
+    showUnsubCallback: function(r)
+    {
+        var resp;
+
+        if (r.responseJSON.response) {
+            resp = r.responseJSON.response;
+            this.data.folder_list = resp.folder_list;
+            $('search_folders_add').update(resp.tree);
+        }
     },
 
     onDomLoad: function()

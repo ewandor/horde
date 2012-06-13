@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2002-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2002-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -9,7 +9,10 @@
  */
 
 require_once dirname(__FILE__) . '/../../lib/Application.php';
-Horde_Registry::appInit('horde', array('session_control' => 'readonly', 'authentication' => 'none'));
+Horde_Registry::appInit('horde', array(
+    'authentication' => 'none',
+    'session_control' => 'readonly'
+));
 
 if (!($module = Horde_Util::getFormData('module')) ||
     !file_exists($registry->get('fileroot', $module))) {

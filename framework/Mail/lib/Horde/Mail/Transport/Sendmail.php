@@ -69,14 +69,12 @@ class Horde_Mail_Transport_Sendmail extends Horde_Mail_Transport
      * Constructor.
      *
      * @param array $params  Additional parameters:
-     * <pre>
-     * 'sendmail_args' - (string) Any extra parameters to pass to the sendmail
-     *                   or sendmail wrapper binary.
-     *                   DEFAULT: -i
-     * 'sendmail_path' - (string) The location of the sendmail binary on the
-     *                   filesystem.
-     *                   DEFAULT: /usr/sbin/sendmail
-     * </pre>
+     *   - sendmail_args: (string) Any extra parameters to pass to the sendmail
+     *                    or sendmail wrapper binary.
+     *                    DEFAULT: -i
+     *   - sendmail_path: (string) The location of the sendmail binary on the
+     *                    filesystem.
+     *                    DEFAULT: /usr/sbin/sendmail
      */
     public function __construct(array $params = array())
     {
@@ -87,13 +85,6 @@ class Horde_Mail_Transport_Sendmail extends Horde_Mail_Transport
         if (isset($params['sendmail_path'])) {
             $this->_sendmailPath = $params['sendmail_path'];
         }
-
-        /* Because we need to pass message headers to the sendmail program on
-         * the commandline, we can't guarantee the use of the standard "\r\n"
-         * separator.  Instead, we use the system's native line separator. */
-        $this->sep = defined('PHP_EOL')
-            ? PHP_EOL
-            : (strpos(PHP_OS, 'WIN') === false) ? "\n" : "\r\n";
     }
 
     /**
@@ -145,7 +136,7 @@ class Horde_Mail_Transport_Sendmail extends Horde_Mail_Transport
             throw new Horde_Mail_Exception('From address specified with dangerous characters.');
         }
 
-        $mail = @popen($this->_sendmailPath . (empty($this->_sendmailArgs) ? '' : ' ' . $this->_sendmailArgs) . ' -f' . escapeshellarg($from) . ' -- ' . $recipients, 'w');
+        $mail = @popen($this->_sendmailPath . (empty($this->_sendmailArgs) ? '' : ' ' . $this->_sendmailArgs) . ' -f ' . escapeshellarg($from) . ' -- ' . $recipients, 'w');
         if (!$mail) {
             throw new Horde_Mail_Exception('Failed to open sendmail [' . $this->_sendmailPath . '] for execution.');
         }
@@ -155,12 +146,15 @@ class Horde_Mail_Transport_Sendmail extends Horde_Mail_Transport
         fputs($mail, $text_headers . $this->sep . $this->sep);
 
         if (is_resource($body)) {
+            stream_filter_register('horde_eol', 'Horde_Stream_Filter_Eol');
+            stream_filter_append($body, 'horde_eol', STREAM_FILTER_READ, array('eol' => $this->sep));
+
             rewind($body);
             while (!feof($body)) {
                 fputs($mail, fread($body, 8192));
             }
         } else {
-            fputs($mail, $body);
+            fputs($mail, $this->_normalizeEOL($body));
         }
         $result = pclose($mail);
 

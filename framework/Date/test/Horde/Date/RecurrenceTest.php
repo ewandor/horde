@@ -393,6 +393,24 @@ class Horde_Date_RecurrenceTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('FREQ=MONTHLY;INTERVAL=1;BYDAY=2FR;COUNT=2', $r->toRRule20($this->ical));
     }
 
+    public function testMonthlyWeekdayFifth()
+    {
+        $r = new Horde_Date_Recurrence('2012-05-31 10:00:00');
+        $r->setRecurType(Horde_Date_Recurrence::RECUR_MONTHLY_WEEKDAY);
+        $r->setRecurInterval(1);
+        $this->assertEquals('MP1 5+ TH #0', $r->toRRule10($this->ical));
+        $this->assertEquals('FREQ=MONTHLY;INTERVAL=1;BYDAY=5TH', $r->toRRule20($this->ical));
+        $next = new Horde_Date('2012-06-01 00:00:00');
+        $next = $r->nextRecurrence($next);
+        $this->assertEquals('2012-08-30 10:00:00', (string)$next);
+        $next->mday++;
+        $next = $r->nextRecurrence($next);
+        $this->assertEquals('2012-11-29 10:00:00', (string)$next);
+        $next->mday++;
+        $next = $r->nextRecurrence($next);
+        $this->assertEquals('2013-01-31 10:00:00', (string)$next);
+    }
+
     public function testYearlyDateNoEnd()
     {
         $r = new Horde_Date_Recurrence('2007-03-01 10:00:00');
@@ -865,6 +883,20 @@ class Horde_Date_RecurrenceTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($s->hasActiveRecurrence());
     }
 
+    public function testHashMissingCycle()
+    {
+        $r = new Horde_Date_Recurrence(new Horde_Date(1970, 1, 1));
+        $r->fromHash(array('interval' => 1, 'range-type' => 'none'));
+        $this->assertEquals(Horde_Date_Recurrence::RECUR_NONE, $r->getRecurType());
+    }
+
+    public function testHashMissingRangeType()
+    {
+        $r = new Horde_Date_Recurrence(new Horde_Date(1970, 1, 1));
+        $r->fromHash(array('interval' => 1, 'cycle' => 'daily'));
+        $this->assertEquals(Horde_Date_Recurrence::RECUR_DAILY, $r->getRecurType());
+    }
+
     /**
      */
     public function testCompletions()
@@ -993,7 +1025,23 @@ class Horde_Date_RecurrenceTest extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Horde_Date', $next);
         $this->assertEquals($next->mday, 9);
         date_default_timezone_set('Europe/Berlin');
+    }
 
+    public function testRecurrenceObjectWithNonDefaultTimezones()
+    {
+        // date_default_timezone_get is Europe/Berlin
+        $date = new Horde_Date('2011-10-01T15:00:00', 'America/New_York');
+        $rrule = new Horde_Date_Recurrence($date);
+        $rrule->setRecurType(Horde_Date_Recurrence::RECUR_WEEKLY);
+        $rrule->setRecurOnDay(Horde_Date::MASK_SATURDAY);
+        $rrule->setRecurInterval(2);
+
+        $after = new Horde_Date('2011-10-16');
+        $next = $rrule->nextRecurrence($after);
+
+        $this->assertInstanceOf('Horde_Date', $next);
+        $this->assertEquals('2011-10-29 15:00:00', (string)$next);
+        $this->assertEquals('America/New_York', $next->timezone);
     }
 
 }

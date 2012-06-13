@@ -2,7 +2,7 @@
 /**
  * Login system task for automated garbage collection tasks.
  *
- * Copyright 2009-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2009-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -33,8 +33,8 @@ class Horde_LoginTasks_SystemTask_GarbageCollection extends Horde_LoginTasks_Sys
         if (rand(0, 9) === 0) {
             foreach (array('cachecss', 'cachejs') as $val) {
                 if (!empty($GLOBALS['conf'][$val]) &&
-                    ($GLOBALS['conf'][$val] == 'filesystem')) {
-                        $this->_staticFilesGc($val);
+                    (strcasecmp($GLOBALS['conf'][$val . 'params']['driver'], 'filesystem') === 0)) {
+                    $this->_staticFilesGc($val);
                 }
             }
         }

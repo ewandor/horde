@@ -17,7 +17,7 @@ require_once dirname(__FILE__) . '/../../../../Autoload.php';
 /**
  * Test the notification handler class that logs to the horde log.
  *
- * Copyright 2009-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2009-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -30,7 +30,7 @@ require_once dirname(__FILE__) . '/../../../../Autoload.php';
  */
 
 class Horde_Notification_Class_Notification_Handler_Decorator_HordelogTest
-extends PHPUnit_Framework_TestCase
+extends Horde_Test_Case
 {
     public function testNoneAvailable()
     {

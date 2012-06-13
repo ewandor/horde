@@ -2,7 +2,7 @@
 /**
  * Gollem view script.
  *
- * Copyright 1999-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 1999-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -28,6 +28,12 @@ if ($vars->driver != Gollem::$backend['driver']) {
     ))->redirect();
 }
 
+try {
+    Gollem::changeDir();
+} catch (Horde_Vfs_Exception $e) {
+    $notification->push($e);
+}
+
 $gollem_vfs = $injector->getInstance('Gollem_Vfs');
 $stream = null;
 $data = '';
@@ -45,12 +51,15 @@ try {
 /* Run through action handlers. */
 switch ($vars->actionID) {
 case 'download_file':
-    $browser->downloadHeaders($vars->file, null, false, $gollem_vfs->size($vars->dir, $vars->file));
+    try {
+        $size = $gollem_vfs->size($vars->dir, $vars->file);
+    } catch (Horde_Vfs_Exception $e) {
+        $size = null;
+    }
+    $browser->downloadHeaders($vars->file, null, false, $size);
     if (is_resource($stream)) {
         while ($buffer = fread($stream, 8192)) {
             echo $buffer;
-            ob_flush();
-            flush();
         }
     } else {
         echo $data;
@@ -65,17 +74,24 @@ case 'view_file':
     // We don't know better.
     $mime_part->setCharset('US-ASCII');
 
-    $ret = $injector->getInstance('Horde_Core_Factory_MimeViewer')->create($mime_part)->render('full');
+    $ret = $injector
+        ->getInstance('Horde_Core_Factory_MimeViewer')
+        ->create($mime_part)
+        ->render('full');
     reset($ret);
     $key = key($ret);
+    try {
+        $size = $gollem_vfs->size($vars->dir, $vars->file);
+    } catch (Horde_Vfs_Exception $e) {
+        $size = null;
+    }
 
     if (empty($ret)) {
-        $browser->downloadHeaders($vars->file, null, false, $gollem_vfs->size($vars->dir, $vars->file));
+        $browser->downloadHeaders($vars->file, null, false, $size);
         if (is_resource($stream)) {
+            fseek($stream, 0);
             while ($buffer = fread($stream, 8192)) {
                 echo $buffer;
-                ob_flush();
-                flush();
             }
         } else {
             echo $data;

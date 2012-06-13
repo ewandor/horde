@@ -3,7 +3,7 @@
  * This class provides a place to store common code shared among IMP's various
  * UI views for folder manipulation.
  *
- * Copyright 2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2011-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -99,7 +99,7 @@ class IMP_Ui_Folder
 
             try {
                 $size = $imp_imap->fetch($folder, $query, array(
-                    'ids' => new Horde_Imap_Client_Ids(Horde_Imap_Client_Ids::ALL, true)
+                    'ids' => $imp_imap->getIdsOb(Horde_Imap_Client_Ids::ALL, true)
                 ));
             } catch (IMP_Imap_Exception $e) {
                 continue;
@@ -113,14 +113,14 @@ class IMP_Ui_Folder
             for ($i = 1; $i <= $status['messages']; ++$i) {
                 $curr_size += $size[$i]->getSize();
                 if ($curr_size > 5242880) {
-                    $slices[] = new Horde_Imap_Client_Ids(range($start, $i), true);
+                    $slices[] = $imp_imap->getIdsOb(range($start, $i), true);
                     $curr_size = 0;
                     $start = $i + 1;
                 }
             }
 
             if ($start <= $status['messages']) {
-                $slices[] = new Horde_Imap_Client_Ids(range($start, $status['messages']), true);
+                $slices[] = $imp_imap->getIdsOb(range($start, $status['messages']), true);
             }
 
             unset($size);

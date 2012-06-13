@@ -3,7 +3,7 @@
  * The IMP_Ui_Mailbox:: class is designed to provide a place to store common
  * code shared among IMP's various UI views for the mailbox page.
  *
- * Copyright 2006-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2006-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -77,6 +77,12 @@ class IMP_Ui_Mailbox
         $from = Horde_Mime_Address::getAddressesFromObject($ob->from, array('charset' => 'UTF-8'));
         $from = reset($from);
 
+        if (!empty($from) && !isset($from['inner'])) {
+            $from = (isset($from['addresses']) && count($from['addresses']))
+                ? $from['addresses'][0]
+                : null;
+        }
+
         if (empty($from)) {
             $ret['from'] = _("Invalid Address");
             $ret['error'] = true;
@@ -143,15 +149,9 @@ class IMP_Ui_Mailbox
      */
     public function getSize($size)
     {
-        if (!isset($this->_cache['localeinfo'])) {
-            $this->_cache['localeinfo'] = Horde_Nls::getLocaleInfo();
-        }
-
-        $size = $size / 1024;
-
-        return ($size > 1024)
-            ? sprintf(_("%s MB"), number_format($size / 1024, 1, $this->_cache['localeinfo']['decimal_point'], $this->_cache['localeinfo']['thousands_sep']))
-            : sprintf(_("%s KB"), number_format($size, 0, $this->_cache['localeinfo']['decimal_point'], $this->_cache['localeinfo']['thousands_sep']));
+        return ($size >= 1048576)
+            ? sprintf(_("%s MB"), IMP::numberFormat($size / 1048576, 1))
+            : sprintf(_("%s KB"), IMP::numberFormat($size / 1024, 0));
     }
 
     /**

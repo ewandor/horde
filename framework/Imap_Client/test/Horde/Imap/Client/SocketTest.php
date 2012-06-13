@@ -14,7 +14,7 @@
 /**
  * Tests for the IMAP Socket driver.
  *
- * Copyright 2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2011-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -37,8 +37,8 @@ class Horde_Imap_Client_SocketTest extends PHPUnit_Framework_TestCase
         // Test file is base64 encoded to obfuscate the data.
         $fetch_data = base64_decode(file_get_contents(dirname(__FILE__) . '/fixtures/bug_10503.txt'));
         $imap_test_ob = new Horde_Imap_Client_Stub_Socket(array(
-            'password' => '',
-            'username' => ''
+            'password' => 'stub',
+            'username' => 'stub'
         ));
 
         $sorted = $imap_test_ob->getClientSort(

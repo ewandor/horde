@@ -1,9 +1,8 @@
 <?php
 /**
- * The Horde_String:: class provides static methods for charset and locale
- * safe string manipulation.
+ * Provides static methods for charset and locale safe string manipulation.
  *
- * Copyright 2003-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2003-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -719,6 +718,53 @@ class Horde_String
     }
 
     /**
+     * Check to see if a string is valid UTF-8.
+     *
+     * @since 1.1.0
+     *
+     * @param string $text  The text to check.
+     *
+     * @return boolean  True if valid UTF-8.
+     */
+    static public function validUtf8($text)
+    {
+        /* There is bug in PHP/PCRE with larger strings; stack overflow causes
+         * PHP segfaults. See:
+         * https://bugs.php.net/bug.php?id=37793
+         *
+         * Thus, break string down into smaller chunks instead.
+         */
+        $chunk_size = 4000;
+        $length = strlen($text);
+
+        while ($length > $chunk_size) {
+            /* Can't use self::substr() here since the input may not be
+             * proper UTF-8, which is sort of the whole point of this
+             * method. */
+            if (!self::validUtf8(substr($text, 0, $chunk_size))) {
+                return false;
+            }
+
+            $text = substr($text, $chunk_size);
+            $length -= $chunk_size;
+        }
+
+        /* Regex from:
+         * http://stackoverflow.com/questions/1523460/ensuring-valid-utf-8-in-php
+         */
+        return preg_match('/^(?:
+              [\x09\x0A\x0D\x20-\x7E]            # ASCII
+            | [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
+            | \xE0[\xA0-\xBF][\x80-\xBF]         # excluding overlongs
+            | [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}  # straight 3-byte
+            | \xED[\x80-\x9F][\x80-\xBF]         # excluding surrogates
+            | \xF0[\x90-\xBF][\x80-\xBF]{2}      # planes 1-3
+            | [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15
+            | \xF4[\x80-\x8F][\x80-\xBF]{2}      # plane 16
+        )*$/xs', $text);
+    }
+
+    /**
      * Workaround charsets that don't work with mbstring functions.
      *
      * @param string $charset  The original charset.
@@ -732,11 +778,25 @@ class Horde_String
          * example, by various versions of Outlook to send Korean characters.
          * Use UHC (CP949) encoding instead. See, e.g.,
          * http://lists.w3.org/Archives/Public/ietf-charsets/2001AprJun/0030.html */
-        if (in_array(self::lower($charset), array('ks_c_5601-1987', 'ks_c_5601-1989'))) {
-            $charset = 'UHC';
-        }
+        return in_array(self::lower($charset), array('ks_c_5601-1987', 'ks_c_5601-1989'))
+            ? 'UHC'
+            : $charset;
+    }
 
-        return $charset;
+    /**
+     * Strip UTF-8 byte order mark (BOM) from string data.
+     *
+     * @since 1.4.0
+     *
+     * @param string $str  Input string (UTF-8).
+     *
+     * @return string  Stripped string (UTF-8).
+     */
+    static public function trimUtf8Bom($str)
+    {
+        return (substr($str, 0, 3) == pack('CCC', 239, 187, 191))
+            ? substr($str, 3)
+            : $str;
     }
 
 }

@@ -2,7 +2,7 @@
 /**
  * This file contains the Horde_Date_Recurrence class and according constants.
  *
- * Copyright 2007-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2007-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -352,7 +352,7 @@ class Horde_Date_Recurrence
         }
 
         // Make sure $after and $this->start are in the same TZ
-        $after->setTimeZone($this->start->timezone);
+        $after->setTimezone($this->start->timezone);
         if ($this->start->compareDateTime($after) >= 0) {
             return clone $this->start;
         }
@@ -385,6 +385,7 @@ class Horde_Date_Recurrence
 
             $start_week = Horde_Date_Utils::firstDayOfWeek($this->start->format('W'),
                                                            $this->start->year);
+            $start_week->timezone = $this->start->timezone;
             $start_week->hour = $this->start->hour;
             $start_week->min  = $this->start->min;
             $start_week->sec  = $this->start->sec;
@@ -402,6 +403,7 @@ class Horde_Date_Recurrence
             }
 
             $after_week = Horde_Date_Utils::firstDayOfWeek($week, $theYear);
+            $after_week->timezone = $this->start->timezone;
             $after_week_end = clone $after_week;
             $after_week_end->mday += 7;
 
@@ -1142,16 +1144,18 @@ class Horde_Date_Recurrence
             break;
 
         case self::RECUR_WEEKLY:
-            $rrule = 'FREQ=WEEKLY;INTERVAL=' . $this->recurInterval . ';BYDAY=';
+            $rrule = 'FREQ=WEEKLY;INTERVAL=' . $this->recurInterval;
             $vcaldays = array('SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA');
 
             for ($i = $flag = 0; $i <= 7; ++$i) {
                 if ($this->recurOnDay(pow(2, $i))) {
-                    if ($flag) {
+                    if ($flag == 0) {
+                        $rrule .= ';BYDAY=';
+                        $flag = 1;
+                    } else {
                         $rrule .= ',';
                     }
                     $rrule .= $vcaldays[$i];
-                    $flag = true;
                 }
             }
             break;
@@ -1214,8 +1218,7 @@ class Horde_Date_Recurrence
     {
         $this->reset();
 
-        if (!isset($hash['interval']) || !isset($hash['interval']) ||
-            !isset($hash['range-type'])) {
+        if (!isset($hash['interval']) || !isset($hash['cycle'])) {
             $this->setRecurType(self::RECUR_NONE);
             return false;
         }
@@ -1306,23 +1309,20 @@ class Horde_Date_Recurrence
             }
         }
 
-        switch ($hash['range-type']) {
-        case 'number':
-            if (!isset($hash['range'])) {
-                $this->setRecurType(self::RECUR_NONE);
-                return false;
+        if (isset($hash['range-type']) && isset($hash['range'])) {
+            switch ($hash['range-type']) {
+            case 'number':
+                $this->setRecurCount((int)$hash['range']);
+                break;
+
+            case 'date':
+                $recur_end = new Horde_Date($hash['range']);
+                $recur_end->hour = 23;
+                $recur_end->min = 59;
+                $recur_end->sec = 59;
+                $this->setRecurEnd($recur_end);
+                break;
             }
-
-            $this->setRecurCount((int)$hash['range']);
-            break;
-
-        case 'date':
-            $recur_end = new Horde_Date($hash['range']);
-            $recur_end->hour = 23;
-            $recur_end->min = 59;
-            $recur_end->sec = 59;
-            $this->setRecurEnd($recur_end);
-            break;
         }
 
         // Need to parse <day>?

@@ -3,7 +3,7 @@
  * The IMP_Ui_Compose:: class is designed to provide a place to store common
  * code shared among IMP's various UI views for the compose page.
  *
- * Copyright 2006-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2006-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -156,13 +156,9 @@ class IMP_Ui_Compose
      */
     public function getContents($vars = null)
     {
-        $indices = $ob = null;
+        $ob = null;
 
-        if (is_null($vars) || !isset($vars->uids)) {
-            $indices = IMP::$thismailbox->getIndicesOb(IMP::$uid);
-        } else {
-            $indices = new IMP_Indices_Form($vars->uids);
-        }
+        $indices = $this->getIndices($vars);
 
         if (!is_null($indices)) {
             try {
@@ -180,6 +176,25 @@ class IMP_Ui_Compose
         }
 
         return $ob;
+    }
+
+    /**
+     * Return the Indices object for the messages affected by this compose
+     * action.
+     *
+     * @param Horde_Variables $vars  The variables object.
+     *
+     * @return IMP_Contents  The IMP_Contents object.
+     */
+    public function getIndices($vars = null)
+    {
+        if (!is_null($vars) && isset($vars->msglist)) {
+            return new IMP_Indices($vars->msglist);
+        }
+
+        return (is_null($vars) || !isset($vars->uids))
+            ? IMP::$thismailbox->getIndicesOb(IMP::$uid)
+            : new IMP_Indices_Form($vars->uids);
     }
 
     /**
@@ -277,7 +292,7 @@ class IMP_Ui_Compose
                 // Save in sent mail folder by default?
                 'smf_save' => (bool)$identity->saveSentmail($ident),
                 // Sent mail display name
-                'smf_display' => $smf ? $smf->display : '',
+                'smf_display' => $smf ? $smf->display_html : '',
                 // Bcc addresses to add
                 'bcc' => Horde_Mime_Address::addrArray2String($identity->getBccAddresses($ident), array('charset' => 'UTF-8'))
             );

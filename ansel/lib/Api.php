@@ -2,7 +2,7 @@
 /**
  * Ansel external API interface.
  *
- * Copyright 2004-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2004-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -959,9 +959,9 @@ class Ansel_Api extends Horde_Registry_Api
      *
      * @return array  An array containing tag_name, and total
      */
-    public function listTagInfo($tags = null)
+    public function listTagInfo($tags = null, $user = null)
     {
-        return $GLOBALS['injector']->getInstance('Ansel_Tagger')->getTagInfo($tags);
+        return $GLOBALS['injector']->getInstance('Ansel_Tagger')->getTagInfo($tags, 500, null, $user);
     }
 
     /**

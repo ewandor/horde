@@ -16,21 +16,19 @@
   <email>jan@horde.org</email>
   <active>yes</active>
  </lead>
- <date>2011-10-06</date>
- <time>14:39:32</time>
+ <date>2012-05-29</date>
+ <time>18:16:54</time>
  <version>
-  <release>3.0.3</release>
+  <release>3.0.7</release>
   <api>3.0.0</api>
  </version>
  <stability>
   <release>stable</release>
   <api>stable</api>
  </stability>
- <license uri="http://www.horde.org/licenses/asl.php">ASL</license>
+ <license uri="http://www.horde.org/licenses/apache">ASL</license>
  <notes>
-* [jan] Add Estonian translation (Alar Sing &lt;alar.sing@err.ee&gt;).
-* [gwr] Avoid including the owner name into the default share (Kolab backend).
-* [mjr] Fix removeUserData implementation.
+* 
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
@@ -59,6 +57,7 @@
      <dir name="Imple">
       <file name="EditNote.php" role="horde" />
      </dir> <!-- /lib/Ajax/Imple -->
+     <file name="Application.php" role="horde" />
     </dir> <!-- /lib/Ajax -->
     <dir name="Block">
      <file name="Note.php" role="horde" />
@@ -411,7 +410,6 @@
    <file name="memo.php" role="horde" />
    <file name="README" role="doc" />
    <file name="search.php" role="horde" />
-   <file name="stickies.php" role="horde" />
    <file name="view.php" role="horde" />
   </dir> <!-- / -->
  </contents>
@@ -603,6 +601,7 @@
    <install as="mnemo/lib/Driver.php" name="lib/Driver.php" />
    <install as="mnemo/lib/Exception.php" name="lib/Exception.php" />
    <install as="mnemo/lib/Mnemo.php" name="lib/Mnemo.php" />
+   <install as="mnemo/lib/Ajax/Application.php" name="lib/Ajax/Application.php" />
    <install as="mnemo/lib/Ajax/Imple/EditNote.php" name="lib/Ajax/Imple/EditNote.php" />
    <install as="mnemo/lib/Block/Note.php" name="lib/Block/Note.php" />
    <install as="mnemo/lib/Block/Summary.php" name="lib/Block/Summary.php" />
@@ -761,7 +760,6 @@
    <install as="mnemo/memo.php" name="memo.php" />
    <install as="README" name="README" />
    <install as="mnemo/search.php" name="search.php" />
-   <install as="mnemo/stickies.php" name="stickies.php" />
    <install as="mnemo/view.php" name="view.php" />
   </filelist>
  </phprelease>
@@ -776,7 +774,7 @@
     <api>alpha</api>
    </stability>
    <date>2011-03-09</date>
-   <license uri="http://www.horde.org/licenses/asl.php">ASL</license>
+   <license uri="http://www.horde.org/licenses/apache">ASL</license>
    <notes>
 * First alpha release for Horde 4.
    </notes>
@@ -791,7 +789,7 @@
     <api>beta</api>
    </stability>
    <date>2011-03-16</date>
-   <license uri="http://www.horde.org/licenses/asl.php">ASL</license>
+   <license uri="http://www.horde.org/licenses/apache">ASL</license>
    <notes>
 * Fix PDF generation.
 * Fix encrypting and decrypting of notes.
@@ -807,7 +805,7 @@
     <api>beta</api>
    </stability>
    <date>2011-03-23</date>
-   <license uri="http://www.horde.org/licenses/asl.php">ASL</license>
+   <license uri="http://www.horde.org/licenses/apache">ASL</license>
    <notes>
 * First release candidate for Horde 4.
 * [gwr] Adapted the Kolab driver to Horde 4.
@@ -823,7 +821,7 @@
     <api>beta</api>
    </stability>
    <date>2011-03-30</date>
-   <license uri="http://www.horde.org/licenses/asl.php">ASL</license>
+   <license uri="http://www.horde.org/licenses/apache">ASL</license>
    <notes>
 * Second release candidate for Horde 4.
    </notes>
@@ -838,7 +836,7 @@
     <api>stable</api>
    </stability>
    <date>2011-04-06</date>
-   <license uri="http://www.horde.org/licenses/asl.php">ASL</license>
+   <license uri="http://www.horde.org/licenses/apache">ASL</license>
    <notes>
 * First stable release for Horde 4.
 * [jan] Fix generating tooltip previews of encrypted notes.
@@ -856,7 +854,7 @@
     <release>stable</release>
     <api>stable</api></stability>
    <date>2011-05-18</date>
-   <license uri="http://www.horde.org/licenses/asl.php">ASL</license>
+   <license uri="http://www.horde.org/licenses/apache">ASL</license>
    <notes>
 * [jan] Fix accidental encryption of notes (Bug #9981).
 * [jan] Fix color picker for categories in the note list header (Bug #9980).
@@ -870,7 +868,7 @@
     <release>stable</release>
     <api>stable</api></stability>
    <date>2011-08-02</date>
-   <license uri="http://www.horde.org/licenses/asl.php">ASL</license>
+   <license uri="http://www.horde.org/licenses/apache">ASL</license>
    <notes>
 * [jan] Don&apos;t load all shares with requested permissions from the backend if $conf[&apos;share&apos;][&apos;hidden&apos;] is enabled.
    </notes>
@@ -882,12 +880,68 @@
    <stability>
     <release>stable</release>
     <api>stable</api></stability>
-   <date>2011-10-06</date>
-   <license uri="http://www.horde.org/licenses/asl.php">ASL</license>
+   <date>2011-10-18</date>
+   <license uri="http://www.horde.org/licenses/apache">ASL</license>
    <notes>
 * [jan] Add Estonian translation (Alar Sing &lt;alar.sing@err.ee&gt;).
 * [gwr] Avoid including the owner name into the default share (Kolab backend).
 * [mjr] Fix removeUserData implementation.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>3.0.4</release>
+    <api>3.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-12-13</date>
+   <license uri="http://www.horde.org/licenses/apache">ASL</license>
+   <notes>
+* [jan] Use locale based sorting.
+* [jan] Fix remembering the expansion state of the notepads panel (Bug #10797).
+* [jan] Update Japanese translation (Hiromi Kimura &lt;hiromi@tac.tsukuba.ac.jp&gt;).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>3.0.5</release>
+    <api>3.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-01-31</date>
+   <license uri="http://www.horde.org/licenses/apache">ASL</license>
+   <notes>
+* [mjr] Add missing getChanges API method.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>3.0.6</release>
+    <api>3.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-05-29</date>
+   <license uri="http://www.horde.org/licenses/apache">ASL</license>
+   <notes>
+* [jan] Update Swedish translation (Per Olof Ljungmark &lt;peo@bsdlabs.com&gt;).
+* [jan] Update Italian translation (Massimo Malabotta &lt;mmalabotta@units.it&gt;).
+* [jan] Update Hungarian translation (Zoltán Németh &lt;nemeth.zoltan@etit.hu&gt;).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>3.0.7</release>
+    <api>3.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-05-29</date>
+   <license uri="http://www.horde.org/licenses/apache">ASL</license>
+   <notes>
+* 
    </notes>
   </release>
  </changelog>

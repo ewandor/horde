@@ -15,7 +15,7 @@
 /**
  * Horde_Share_Kolab:: provides the Kolab backend for the horde share driver.
  *
- * Copyright 2004-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2004-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -615,6 +615,19 @@ class Horde_Share_Kolab extends Horde_Share_Base
     }
 
     /**
+     * Renames a share in the shares system.
+     *
+     * @param Horde_Share_Object $share  The share to rename.
+     * @param string $name               The share's new name.
+     *
+     * @throws Horde_Share_Exception
+     */
+    protected function _renameShare(Horde_Share_Object $share, $name)
+    {
+        $share->set('share_name', $name);
+    }
+
+    /**
      * Retrieve the Kolab specific access rights for a share.
      *
      * @param string $id The share ID.
@@ -680,7 +693,7 @@ class Horde_Share_Kolab extends Horde_Share_Base
             $this->getList()->createFolder(
                 $this->_idDecode($id), $this->_type
             );
-        } else if ($id != $old_id) {
+        } elseif ($id != $old_id) {
             $this->getList()->renameFolder(
                 $this->_idDecode($old_id), $this->_idDecode($id), $this->_type
             );

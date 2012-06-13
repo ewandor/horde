@@ -14,7 +14,7 @@
 /**
  * Indicates a parse error when reading a Kolab Format object.
  *
- * Copyright 2009-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2009-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -42,11 +42,11 @@ extends Horde_Kolab_Format_Exception
      */
     public function __construct($input)
     {
-        if (strlen((string) $input) > 50) {
-            $output = substr((string) $input, 0, 50)
+        if (strlen((string)$input) > 50) {
+            $output = substr((string)$input, 0, 50)
                 . '... [shortened to 50 characters]';
         } else {
-            $output = (string) $input;
+            $output = (string)$input;
         }
         $this->_input = $input;
         parent::__construct(

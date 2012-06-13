@@ -16,7 +16,7 @@
  * Kolab XML handler for note groupware objects.
  *
  * Copyright 2007-2009 Klarälvdalens Datakonsult AB
- * Copyright 2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2011-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you did not
  * receive this file, see
@@ -44,20 +44,8 @@ class Horde_Kolab_Format_Xml_Note extends Horde_Kolab_Format_Xml
      * @var Kolab
      */
     protected $_fields_specific = array(
-        'summary' => array(
-            'type'    => self::TYPE_STRING,
-            'value'   => self::VALUE_DEFAULT,
-            'default' => '',
-        ),
-        'background-color' => array(
-            'type'    => self::TYPE_COLOR,
-            'value'   => self::VALUE_DEFAULT,
-            'default' => '#000000',
-        ),
-        'foreground-color' => array(
-            'type'    => self::TYPE_COLOR,
-            'value'   => self::VALUE_DEFAULT,
-            'default' => '#ffff00',
-        ),
+        'summary'          => self::TYPE_STRING,
+        'background-color' => 'Horde_Kolab_Format_Xml_Type_Color_Background',
+        'foreground-color' => 'Horde_Kolab_Format_Xml_Type_Color_Foreground',
     );
 }

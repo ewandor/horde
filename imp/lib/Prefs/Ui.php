@@ -2,7 +2,7 @@
 /**
  * IMP-specific prefs handling.
  *
- * Copyright 2010-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2010-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -269,6 +269,12 @@ class IMP_Prefs_Ui
                 }
                 break;
 
+            case 'reply_lang':
+                $langs = Horde_Nls::getLanguageISO();
+                asort($langs);
+                $ui->override['reply_lang'] = $langs;
+                break;
+
             case 'send_mdn':
                 if (empty($conf['maillog']['use_maillog'])) {
                     $ui->suppress[] = $val;
@@ -441,7 +447,7 @@ class IMP_Prefs_Ui
             return false;
 
         case 'draftsselect':
-            return $this->_updateSpecialFolders('drafts_folder', IMP_Mailbox::formFrom($ui->vars->drafts), $ui->vars->drafts_folder_new, Horde_Imap_Client::SPECIALUSE_DRAFTS, $ui);
+            return $this->_updateSpecialFolders('drafts_folder', IMP_Mailbox::formFrom($ui->vars->drafts), $ui->vars->drafts_new, Horde_Imap_Client::SPECIALUSE_DRAFTS, $ui);
 
         case 'encryptselect':
             return $prefs->setValue('default_encrypt', $ui->vars->default_encrypt);
@@ -450,7 +456,7 @@ class IMP_Prefs_Ui
             return $this->_updateFlagManagement($ui);
 
         case 'initialpageselect':
-            return $prefs->setValue('initial_page', IMP_Mailbox::formFrom($ui->vars->initial_page));
+            return $prefs->setValue('initial_page', strval(IMP_Mailbox::formFrom($ui->vars->initial_page)));
 
         case 'newmail_soundselect':
             return $prefs->setValue('newmail_audio', $ui->vars->newmail_audio);
@@ -525,7 +531,7 @@ class IMP_Prefs_Ui
 
         if ($prefs->isDirty('mail_domain')) {
             $maildomain = preg_replace('/[^-\.a-z0-9]/i', '', $prefs->getValue('mail_domain'));
-            $prefs->setValue('maildomain', $maildomain);
+            $prefs->setValue('mail_domain', $maildomain);
             if (!empty($maildomain)) {
                 $session->set('imp', 'maildomain', $maildomain);
             }
@@ -583,7 +589,7 @@ class IMP_Prefs_Ui
             'basename' => true,
             'selected' => $folder
         )));
-        $t->set('current', sprintf(_("Current access to %s"), $folder->display));
+        $t->set('current', sprintf(_("Current access to %s"), $folder->display_html));
         $t->set('folder', $folder->form_to);
         $t->set('hasacl', count($curr_acl));
 
@@ -1113,7 +1119,7 @@ class IMP_Prefs_Ui
 
         if (!empty($pubkey_list)) {
             $plist = array();
-            $self_url = $ui->selfUrl(array('special' => true));
+            $self_url = $ui->selfUrl(array('special' => true, 'token' => true));
 
             foreach ($pubkey_list as $val) {
                 $plist[] = array(
@@ -1191,7 +1197,7 @@ class IMP_Prefs_Ui
                 : null;
 
             if ($view_mode == 'dimp') {
-                $mailboxids['enable_' . $key] = strval($val);
+                $mailboxids['enable_' . $key] = $val->formid;
             }
 
             $vout[] = array(
@@ -1216,8 +1222,8 @@ class IMP_Prefs_Ui
 
             $editable = !$filter_locked && $imp_search->isFilter($val, true);
 
-            if ($view_mode == 'dimp') {
-                $mailboxids['enable_' . $key] = strval($val);
+            if ($editable && ($view_mode == 'dimp')) {
+                $mailboxids['enable_' . $key] = $val->formid;
             }
 
             $fout[] = array(
@@ -1398,7 +1404,7 @@ class IMP_Prefs_Ui
                 $t->set('infopublic', Horde::link($smime_url->copy()->add('actionID', 'info_personal_public_key'), _("Information on Personal Public Certificate"), null, 'info_key'));
 
                 if ($passphrase = $GLOBALS['injector']->getInstance('IMP_Crypt_Smime')->getPassphrase()) {
-                    $t->set('passphrase', Horde::link($ui->selfUrl(array('special' => true))->add('unset_smime_passphrase', 1), _("Unload Passphrase")) . _("Unload Passphrase"));
+                    $t->set('passphrase', Horde::link($ui->selfUrl(array('special' => true, 'token' => true))->add('unset_smime_passphrase', 1), _("Unload Passphrase")) . _("Unload Passphrase"));
                 } else {
                     $imple = $GLOBALS['injector']->getInstance('Horde_Core_Factory_Imple')->create(array('imp', 'PassphraseDialog'), array(
                         'reloadurl' => $ui->selfUrl()->setRaw(true),
@@ -1538,6 +1544,7 @@ class IMP_Prefs_Ui
 
         $t = $GLOBALS['injector']->createInstance('Horde_Template');
         $t->setOption('gettext', true);
+        $t->set('signature', htmlspecialchars($GLOBALS['prefs']->getValue('signature_html')));
 
         return $t->fetch(IMP_TEMPLATES . '/prefs/signaturehtml.html');
     }

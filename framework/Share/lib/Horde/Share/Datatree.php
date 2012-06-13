@@ -3,7 +3,7 @@
  * Horde_Share_Datatree provides the datatree backend for the horde share
  * driver.
  *
- * Copyright 2002-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2002-2012 Horde LLC (http://www.horde.org/)
  * Copyright 2002-2007 Infoteck Internet <webmaster@infoteck.qc.ca>
  *
  * See the enclosed file COPYING for license information (LGPL). If you
@@ -239,6 +239,19 @@ class Horde_Share_Datatree extends Horde_Share_Base
     protected function _removeShare(Horde_Share_Object $share)
     {
         Horde_Exception_Pear::catchError($this->_datatree->remove($share->datatreeObject));
+    }
+
+    /**
+     * Renames a share in the shares system.
+     *
+     * @param Horde_Share_Object $share  The share to rename.
+     * @param string $name               The share's new name.
+     *
+     * @throws Horde_Share_Exception
+     */
+    protected function _renameShare(Horde_Share_Object $share, $name)
+    {
+        Horde_Exception_Pear::catchError($this->_datatree->rename($share->datatreeObject, $name));
     }
 
     /**

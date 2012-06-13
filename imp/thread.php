@@ -2,7 +2,7 @@
 /**
  * Message thread display.
  *
- * Copyright 2004-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2004-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -90,7 +90,7 @@ $query->envelope();
 
 foreach ($imp_indices as $ob) {
     $fetch_res = $imp_imap->fetch($ob->mbox, $query, array(
-        'ids' => new Horde_Imap_Client_Ids($ob->uids)
+        'ids' => $imp_imap->getIdsOb($ob->uids)
     ));
 
     foreach ($ob->uids as $idx) {

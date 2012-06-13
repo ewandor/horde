@@ -2,10 +2,10 @@
 /**
  * The Ingo_Script_Procmail_Recipe:: class represents a Procmail recipe.
  *
- * Copyright 2003-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2003-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file LICENSE for license information (ASL).  If you
- * did not receive this file, see http://www.horde.org/licenses/asl.php.
+ * did not receive this file, see http://www.horde.org/licenses/apache.
  *
  * @author  Ben Chavet <ben@horde.org>
  * @package Ingo
@@ -163,7 +163,7 @@ class Ingo_Script_Procmail_Recipe
                     if (Horde_Mime::is8bit($params['action-value']['reason'])) {
                         $this->_action[] = '       -i"Subject: ' . Horde_Mime::encode($params['action-value']['subject'] . ' (Re: $SUBJECT)', 'UTF-8') . '" \\';
                         $this->_action[] = '       -i"Content-Transfer-Encoding: quoted-printable" \\';
-                        $this->_action[] = '       -i"Content-Type: text/plain; charset=UTF-8' . '" ; \\';
+                        $this->_action[] = '       -i"Content-Type: text/plain; charset=UTF-8" ; \\';
                         $reason = Horde_Mime::quotedPrintableEncode($params['action-value']['reason'], "\n");
                     } else {
                         $this->_action[] = '       -i"Subject: ' . Horde_Mime::encode($params['action-value']['subject'] . ' (Re: $SUBJECT)', 'UTF-8') . '" ; \\';
@@ -396,21 +396,16 @@ class Ingo_Script_Procmail_Recipe
     public function procmailPath($folder)
     {
         /* NOTE: '$DEFAULT' here is a literal, not a PHP variable. */
+        if (empty($folder) || ($folder == 'INBOX')) {
+            return '$DEFAULT';
+        }
         if (isset($this->_params) &&
             ($this->_params['path_style'] == 'maildir')) {
-            if (empty($folder) || ($folder == 'INBOX')) {
-                return '$DEFAULT/';
-            }
             if (substr($folder, 0, 6) == 'INBOX.') {
                 $folder = substr($folder, 6);
             }
-            return '"$DEFAULT/.' . escapeshellcmd($folder) . '/"';
-        } else {
-            if (empty($folder) || ($folder == 'INBOX')) {
-                return '$DEFAULT';
-            }
-            return str_replace(' ', '\ ', escapeshellcmd($folder));
+            return '".' . escapeshellcmd($folder) . '/"';
         }
+        return str_replace(' ', '\ ', escapeshellcmd($folder));
     }
-
 }

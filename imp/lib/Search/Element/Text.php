@@ -2,7 +2,7 @@
 /**
  * This class handles text-related search queries.
  *
- * Copyright 2010-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2010-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -29,8 +29,8 @@ class IMP_Search_Element_Text extends IMP_Search_Element
          * n = (integer) Do a NOT search?
          * t = (string) The search text. */
         $this->_data = new stdClass;
-        $this->_data->b = intval($bodyonly);
-        $this->_data->n = intval($not);
+        $this->_data->b = intval(!empty($bodyonly));
+        $this->_data->n = intval(!empty($not));
         $this->_data->t = $text;
     }
 
@@ -51,7 +51,7 @@ class IMP_Search_Element_Text extends IMP_Search_Element
             ? _("Message Body")
             : _("Entire Message (including Headers)");
 
-        return sprintf("%s for '%s'", $label, ((!empty($this->_data->n)) ? _("not") . ' ' : '') . $this->_data->t);
+        return sprintf(_("%s for '%s'"), $label, ((!empty($this->_data->n)) ? _("not") . ' ' : '') . $this->_data->t);
     }
 
 }

@@ -5,7 +5,7 @@
  * This file defines Horde's core API interface. Other core Horde libraries
  * can interact with IMP through this API.
  *
- * Copyright 2010-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2010-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -57,7 +57,7 @@ class IMP_Application extends Horde_Registry_Application
 
     /**
      */
-    public $version = 'H4 (5.0.14-git)';
+    public $version = 'H4 (5.0.22-git)';
 
     /**
      * Cached values to add to the session after authentication.
@@ -119,13 +119,16 @@ class IMP_Application extends Horde_Registry_Application
         }
 
         // Set default message character set.
-        if ($def_charset = $GLOBALS['prefs']->getValue('default_msg_charset')) {
-            Horde_Mime_Part::$defaultCharset = $def_charset;
-            Horde_Mime_Headers::$defaultCharset = $def_charset;
-        }
+        if ($GLOBALS['registry']->getAuth()) {
+            if ($def_charset = $GLOBALS['prefs']->getValue('default_msg_charset')) {
+                Horde_Mime_Part::$defaultCharset = $def_charset;
+                Horde_Mime_Headers::$defaultCharset = $def_charset;
+            }
 
-        // Always use Windows-1252 in place of ISO-8859-1 for MIME decoding.
-        Horde_Mime::$decodeWindows1252 = true;
+            // Always use Windows-1252 in place of ISO-8859-1 for MIME
+            // decoding.
+            Horde_Mime::$decodeWindows1252 = true;
+        }
 
         IMP::setCurrentMailboxInfo();
 
@@ -388,23 +391,28 @@ class IMP_Application extends Horde_Registry_Application
 
     /**
      * @param array $credentials  Credentials of the user. Allowed keys:
-     *                            'imp_select_view', 'imp_server_key',
-     *                            'password'.
+     *                            'imp_server_key', 'password'.
      */
     public function authAuthenticate($userId, $credentials)
     {
         $this->init();
 
+        if (isset($credentials['server'])) {
+            $server = $credentials['server'];
+        } else {
+            $server = empty($credentials['imp_server_key'])
+                ? IMP_Auth::getAutoLoginServer()
+                : $credentials['imp_server_key'];
+        }
+
         $new_session = IMP_Auth::authenticate(array(
             'password' => $credentials['password'],
-            'server' => empty($credentials['imp_server_key']) ? IMP_Auth::getAutoLoginServer() : $credentials['imp_server_key'],
+            'server' => $server,
             'userId' => $userId
         ));
 
         if ($new_session) {
-            $this->_cacheSess = array_merge($new_session, array(
-                'select_view' => empty($credentials['imp_select_view']) ? '' : $credentials['imp_select_view']
-            ));
+            $this->_cacheSess = $new_session;
         }
     }
 
@@ -614,8 +622,8 @@ class IMP_Application extends Horde_Registry_Application
     }
 
     /**
-     * Callback, called from common-template-mobile.inc that sets up the jquery
-     * mobile init hanler.
+     * Callback, called from common-template-mobile.inc that sets up the
+     * jquery mobile init hanler.
      */
     public function mobileInitCallback()
     {

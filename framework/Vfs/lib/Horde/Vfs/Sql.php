@@ -12,7 +12,7 @@
  * The table structure for the VFS can be created with the horde-db-migrate
  * script from the Horde_Db package.
  *
- * Copyright 2002-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2002-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -94,15 +94,18 @@ class Horde_Vfs_Sql extends Horde_Vfs_Base
     public function getFolderSize($path = null, $name = null)
     {
         try {
-            $where = is_null($path)
-                ? null
-                : sprintf('WHERE vfs_path LIKE %s', ((!strlen($path)) ? '""' : $this->_db->quote($this->_convertPath($path) . '%')));
-            $length_op = $this->_getFileSizeOp();
+            $where = null;
+            $params = array();
+            if (strlen($path)) {
+                $where = 'WHERE vfs_path = ? OR vfs_path LIKE ?';
+                $path = $this->_convertPath($path);
+                $params = array($path, $path . '/%');
+            }
             $sql = sprintf('SELECT SUM(%s(vfs_data)) FROM %s %s',
-                           $length_op,
+                           $this->_getFileSizeOp(),
                            $this->_params['table'],
                            $where);
-            $size = $this->_db->selectValue($sql);
+            $size = $this->_db->selectValue($sql, $params);
         } catch (Horde_Db_Exception $e) {
             throw new Horde_Vfs_Exception($e);
         }
@@ -147,8 +150,7 @@ class Horde_Vfs_Sql extends Horde_Vfs_Base
      * @return string  The file data.
      * @throws Horde_Vfs_Exception
      */
-    public function readByteRange($path, $name, &$offset, $length = -1,
-                                  &$remaining)
+    public function readByteRange($path, $name, &$offset, $length, &$remaining)
     {
         $data = $this->_readBlob($this->_params['table'], 'vfs_data', array(
             'vfs_path' => $this->_convertPath($path),
@@ -263,10 +265,9 @@ class Horde_Vfs_Sql extends Horde_Vfs_Base
         $path = $this->_convertPath($path);
 
         try {
-            $sql = sprintf('DELETE FROM %s WHERE vfs_type = ? AND vfs_path %s AND vfs_name = ?',
-                           $this->_params['table'],
-                           (!strlen($path) && $this->_db->dbsyntax == 'oci8') ? ' IS NULL' : ' = ' . $this->_db->quote($path));
-            $values = array(self::FILE, $name);
+            $sql = sprintf('DELETE FROM %s WHERE vfs_type = ? AND vfs_path = ? AND vfs_name = ?',
+                           $this->_params['table']);
+            $values = array(self::FILE, $path, $name);
             $result = $this->_db->delete($sql, $values);
         } catch (Horde_Db_Exception $e) {
             throw new Horde_Vfs_Exception($e);
@@ -365,6 +366,11 @@ class Horde_Vfs_Sql extends Horde_Vfs_Base
             }
         }
 
+        /* Remember the size of the folder. */
+        if (!is_null($this->_vfsSize)) {
+            $size = $this->getFolderSize($folderPath);
+        }
+
         /* First delete everything below the folder, so if error we get no
          * orphans. */
         try {
@@ -373,6 +379,7 @@ class Horde_Vfs_Sql extends Horde_Vfs_Base
                            (!strlen($folderPath) && $this->_db->dbsyntax == 'oci8') ? ' IS NULL' : ' LIKE ' . $this->_db->quote($this->_getNativePath($folderPath, '%')));
             $this->_db->delete($sql);
         } catch (Horde_Db_Exception $e) {
+            $this->_vfsSize = null;
             throw new Horde_Vfs_Exception('Unable to delete VFS recursively: ' . $e->getMessage());
         }
 
@@ -383,6 +390,7 @@ class Horde_Vfs_Sql extends Horde_Vfs_Base
                            (!strlen($path) && $this->_db->dbsyntax == 'oci8') ? ' IS NULL' : ' = ' . $this->_db->quote($folderPath));
             $this->_db->delete($sql);
         } catch (Horde_Db_Exception $e) {
+            $this->_vfsSize = null;
             throw new Horde_Vfs_Exception('Unable to delete VFS directory: ' . $e->getMessage());
         }
 
@@ -394,7 +402,13 @@ class Horde_Vfs_Sql extends Horde_Vfs_Base
             $values = array($name);
             $this->_db->delete($sql, $values);
         } catch (Horde_Db_Exception $e) {
+            $this->_vfsSize = null;
             throw new Horde_Vfs_Exception('Unable to delete VFS directory: ' . $e->getMessage());
+        }
+
+        /* Update VFS size. */
+        if (!is_null($this->_vfsSize)) {
+            $this->_vfsSize -= $size;
         }
     }
 
@@ -510,6 +524,11 @@ class Horde_Vfs_Sql extends Horde_Vfs_Base
 
         $folders = array();
         foreach ($folderList as $line) {
+            // Filter out dotfolder if they aren't wanted.
+            if (!$dotfolders && substr($line['vfs_name'], 0, 1) == '.') {
+                continue;
+            }
+
             $folder['val'] = $this->_getNativePath($line['vfs_path'], $line['vfs_name']);
             $folder['abbrev'] = '';
             $folder['label'] = '';

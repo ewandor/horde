@@ -8,7 +8,7 @@
  *   'mt' - (string) Message token
  *   'fullmsg' - (boolean) View full message?
  *
- * Copyright 1999-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 1999-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -33,8 +33,6 @@ $imp_mailbox = IMP::$mailbox->getListOb(IMP::$thismailbox->getIndicesOb(IMP::$ui
 if (!$imp_mailbox->isValidIndex()) {
     IMP::$mailbox->url('mailbox-mimp.php')->add('a', 'm')->redirect();
 }
-
-$readonly = IMP::$mailbox->readonly;
 
 $imp_ui_mimp = $injector->getInstance('IMP_Ui_Mimp');
 $imp_hdr_ui = new IMP_Ui_Headers();
@@ -71,7 +69,7 @@ case 'u':
 case 'rs':
 case 'ri':
     $msg_index = $imp_mailbox->getMessageIndex();
-    $msg_delete = (IMP_Spam::reportSpam(new IMP_Indices($imp_mailbox), $vars->a == 'rs' ? 'spam' : 'innocent', array('mailboxob' => $imp_mailbox)) === 1);
+    $msg_delete = (IMP_Spam::reportSpam(new IMP_Indices($imp_mailbox), $vars->a == 'rs' ? 'spam' : 'notspam', array('mailboxob' => $imp_mailbox)) === 1);
     break;
 
 // 'pa' = part action
@@ -105,16 +103,13 @@ try {
     $query = new Horde_Imap_Client_Fetch_Query();
     $query->flags();
     $flags_ret = $imp_imap->fetch($mailbox, $query, array(
-        'ids' => new Horde_Imap_Client_Ids($uid)
+        'ids' => $imp_imap->getIdsOb($uid)
     ));
 
     $query = new Horde_Imap_Client_Fetch_Query();
     $query->envelope();
-    $query->headerText(array(
-        'peek' => $readonly
-    ));
     $fetch_ret = $imp_imap->fetch($mailbox, $query, array(
-        'ids' => new Horde_Imap_Client_Ids($uid)
+        'ids' => $imp_imap->getIdsOb($uid)
     ));
 } catch (IMP_Imap_Exception $e) {
     $mailbox->url('mailbox-mimp.php')->add('a', 'm')->redirect();
@@ -122,11 +117,11 @@ try {
 
 $envelope = $fetch_ret[$uid]->getEnvelope();
 $flags = $flags_ret[$uid]->getFlags();
-$mime_headers = $fetch_ret[$uid]->getHeaderText(0, Horde_Imap_Client_Data_Fetch::HEADER_PARSE);
 
 /* Parse the message. */
 try {
     $imp_contents = $injector->getInstance('IMP_Factory_Contents')->create(new IMP_Indices($imp_mailbox));
+    $mime_headers = $imp_contents->getHeaderAndMarkAsSeen();
 } catch (IMP_Exception $e) {
     $mailbox->url('mailbox-mimp.php')->add('a', 'm')->redirect();
 }
@@ -179,7 +174,7 @@ $display_headers = $msgAddresses = array();
 
 if (($subject = $mime_headers->getValue('subject'))) {
     /* Filter the subject text, if requested. */
-    $subject = Horde_String::truncate(IMP::filterText($subject), 50);
+    $subject = htmlspecialchars(Horde_String::truncate(IMP::filterText($subject), 50), ENT_QUOTES, 'UTF-8');
 } else {
     $subject = _("[No Subject]");
 }

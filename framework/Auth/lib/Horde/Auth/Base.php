@@ -3,7 +3,7 @@
  * The Horde_Auth_Base:: class provides a common abstracted interface to
  * creating various authentication backends.
  *
- * Copyright 1999-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 1999-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you did
  * not receive this file, http://www.horde.org/licenses/lgpl21
@@ -347,7 +347,8 @@ abstract class Horde_Auth_Base
                 array('action' => 'login_failed', 'who' => $userId));
             $history_log = $this->_history_api->getHistory($history_identifier);
             if ($this->_params['login_block_count'] > 0 &&
-                $this->_params['login_block_count'] <= $history_log->count()) {
+                $this->_params['login_block_count'] <= $history_log->count() &&
+                $this->hasCapability('lock')) {
                 $this->lockUser($userId, $this->_params['login_block_time']);
             }
         } catch (Horde_History_Exception $e) {

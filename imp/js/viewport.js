@@ -32,8 +32,9 @@
  *            object when sending an AJAX message.
  * buffer_pages: (integer) The number of viewable pages to send to the browser
  *               per server access when listing rows.
- * empty_msg: (string) A string to display when the view is empty. Inserted in
- *            a SPAN element with class 'vpEmpty'.
+ * empty_msg: (string | function) A string to display when the view is empty.
+ *            Inserted in a SPAN element with class 'vpEmpty'. If a function,
+ *            will use the return value from the function for the text.
  * limit_factor: (integer) When browsing through a list, if a user comes
  *               within this percentage of the end of the current cached
  *               viewport, send a background request to the server to retrieve
@@ -110,6 +111,10 @@
  *   Fired when a fetch AJAX response is completed.
  *   params: (string) Current view.
  *
+ * ViewPort:endRangeFetch
+ *   Fired when a fetch rangeslice AJAX response is completed.
+ *   params: (string) Current view.
+ *
  * ViewPort:fetch
  *   Fired when a non-background AJAX response is sent.
  *   params: (string) Current view.
@@ -173,7 +178,7 @@
  * data: (object) Data for each entry. Keys are a unique ID (see also the
  *       'rowlist' entry). Values are the data objects. Internal keys for
  *       these data objects must NOT begin with the string 'VP_' (reserved
- *       keys). THese values update current cached values.
+ *       keys). These values update current cached values.
  * data_reset: (integer) If set, purge all browser cached data objects.
  * disappear: (array) The list of unique IDs that are browser cached but no
  *            longer exist on the server.
@@ -202,8 +207,8 @@
  *   VP_rownum: (integer) The row number of the row.
  *
  *
- * Scroll bars use ars styled using these CSS class names:
- * -------------------------------------------------------
+ * Scroll bars are styled using these CSS class names:
+ * ---------------------------------------------------
  * vpScroll - The scroll bar container.
  * vpScrollUp - The UP arrow.
  * vpScrollCursor - The cursor used to slide within the bounds.
@@ -213,7 +218,7 @@
  * Requires prototypejs 1.6+, scriptaculous 1.8+ (effects.js only), and
  * Horde's dragdrop2.js and slider2.js.
  *
- * Copyright 2005-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2005-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -265,7 +270,7 @@ var ViewPort = Class.create({
         this.id = 0;
 
         // Init empty string now.
-        this.empty_msg = new Element('SPAN', { className: 'vpEmpty' }).insert(opts.empty_msg);
+        this.empty_msg = new Element('SPAN', { className: 'vpEmpty' });
 
         // Set up AJAX response function.
         this.ajax_response = this.opts.onAjaxResponse || this._ajaxRequestComplete.bind(this);
@@ -345,7 +350,12 @@ var ViewPort = Class.create({
     // view = ID of view
     deleteView: function(view)
     {
+        if (this.view == view) {
+            return false;
+        }
+
         delete this.views[view];
+        return true;
     },
 
     // rownum = (integer) Row number
@@ -407,12 +417,17 @@ var ViewPort = Class.create({
     {
         if (vs.size()) {
             if (this.isbusy) {
-                this._remove.bind(this, vs).defer();
+                this.remove.bind(this, vs).defer();
             } else {
                 this.isbusy = true;
-                this._remove(vs);
-                if (vs.getBuffer().getView() == this.view) {
-                    this.requestContentRefresh(this.currentOffset());
+                try {
+                    this._remove(vs);
+                    if (vs.getBuffer().getView() == this.view) {
+                        this.requestContentRefresh(this.currentOffset());
+                    }
+                } catch (e) {
+                    this.isbusy = false;
+                    throw e;
                 }
                 this.isbusy = false;
             }
@@ -428,10 +443,10 @@ var ViewPort = Class.create({
             this.deselect(vs);
         }
 
+        this.opts.container.fire('ViewPort:remove', vs);
+
         buffer.remove(vs.get('rownum'));
         buffer.setMetaData({ total_rows: buffer.getMetaData('total_rows') - vs.size() }, true);
-
-        this.opts.container.fire('ViewPort:remove', vs);
     },
 
     // nowait = (boolean) If true, don't delay before resizing.
@@ -449,7 +464,7 @@ var ViewPort = Class.create({
         if (nowait) {
             this._onResize(size);
         } else {
-            this.resizefunc = this._onResize.bind(this, size).delay(0.1);
+            this.resizefunc = this._onResize.bind(this, size).defer();
         }
     },
 
@@ -490,7 +505,7 @@ var ViewPort = Class.create({
             });
             this.opts.content.setStyle({ width: '100%' });
             sp.currbar.show();
-            this.opts.pane_data.setStyle({ height: (this._getMaxHeight() - h) + 'px' }).show();
+            this.opts.pane_data.setStyle({ height: Math.max(this._getMaxHeight() - h, 0) + 'px' }).show();
             break;
 
         case 'vert':
@@ -582,11 +597,21 @@ var ViewPort = Class.create({
     _fetchBuffer: function(opts)
     {
         if (this.isbusy) {
-            return this._fetchBuffer.bind(this, opts).defer();
+            this._fetchBuffer.bind(this, opts).defer();
+        } else {
+            this.isbusy = true;
+            try {
+                this._fetchBufferDo(opts);
+            } catch (e) {
+                this.isbusy = false;
+                throw e;
+            }
+            this.isbusy = false;
         }
+    },
 
-        this.isbusy = true;
-
+    _fetchBufferDo: function(opts)
+    {
         var llist, lrows, rlist, tmp, type, value,
             view = (opts.view || this.view),
             b = this._getBuffer(view),
@@ -647,7 +672,6 @@ var ViewPort = Class.create({
                 if (!this.active_req && !opts.background) {
                     this.active_req = llist.keys().numericSort().last();
                 }
-                this.isbusy = false;
                 return;
             }
 
@@ -657,7 +681,6 @@ var ViewPort = Class.create({
             rlist = $A($R(tmp.start, tmp.end)).diff(b.getAllRows());
 
             if (!rlist.size()) {
-                this.isbusy = false;
                 return;
             }
 
@@ -681,8 +704,6 @@ var ViewPort = Class.create({
         }
 
         this._ajaxRequest(params, { noslice: true, view: view });
-
-        this.isbusy = false;
     },
 
     // rownum = (integer) Row number
@@ -805,7 +826,7 @@ var ViewPort = Class.create({
 
         if (r.rangelist) {
             this.select(this.createSelection('uid', r.rangelist, r.view));
-            this.opts.container.fire('ViewPort:endFetch', r.view);
+            this.opts.container.fire('ViewPort:endRangeFetch', r.view);
         }
 
         if (!Object.isUndefined(r.cacheid)) {
@@ -818,10 +839,20 @@ var ViewPort = Class.create({
     {
         if (this.isbusy) {
             this._ajaxResponse.bind(this, r).defer();
-            return;
+        } else {
+            this.isbusy = true;
+            try {
+                this._ajaxResponseDo(r);
+            } catch (e) {
+                this.isbusy = false;
+                throw e;
+            }
+            this.isbusy = false;
         }
+    },
 
-        this.isbusy = true;
+    _ajaxResponseDo: function(r)
+    {
         this._clearWait();
 
         var callback, offset, tmp,
@@ -878,8 +909,6 @@ var ViewPort = Class.create({
             // viewport incorrectly.
             buffer.setMetaData({ offset: Number(r.rownum) - 1 }, true);
         }
-
-        this.isbusy = false;
     },
 
     // offset = (integer) Offset of row to display
@@ -941,7 +970,7 @@ var ViewPort = Class.create({
         } else {
             vr.each(this.opts.content.fire.bind(this.opts.content, 'ViewPort:clear'));
             vr.invoke('remove');
-            c.update(this.empty_msg.clone(true));
+            c.update(this.empty_msg.clone(true).insert(Object.isFunction(this.opts.empty_msg) ? this.opts.empty_msg() : this.opts.empty_msg));
         }
 
         this.scroller.updateDisplay();
@@ -1483,23 +1512,23 @@ ViewPort_Buffer = Class.create({
         }, this);
 
         if (opts.mdreset) {
-            this.usermdata = $H(md);
-        } else {
-            $H(md).each(function(pair) {
-                if (Object.isString(pair.value) ||
-                    Object.isNumber(pair.value) ||
-                    Object.isArray(pair.value)) {
-                    this.usermdata.set(pair.key, pair.value);
-                } else {
-                    var val = this.usermdata.get(pair.key);
-                    if (val) {
-                        val.update($H(pair.value));
-                    } else {
-                        this.usermdata.set(pair.key, $H(pair.value));
-                    }
-                }
-            }, this);
+            this.usermdata = $H();
         }
+
+        $H(md).each(function(pair) {
+            if (Object.isString(pair.value) ||
+                Object.isNumber(pair.value) ||
+                Object.isArray(pair.value)) {
+                this.usermdata.set(pair.key, pair.value);
+            } else {
+                var val = this.usermdata.get(pair.key);
+                if (val) {
+                    val.update($H(pair.value));
+                } else {
+                    this.usermdata.set(pair.key, $H(pair.value));
+                }
+            }
+        }, this);
     },
 
     // offset = (integer) Offset of the beginning of the slice.
@@ -1630,6 +1659,7 @@ ViewPort_Buffer = Class.create({
             newsize = rowsize - rownums.size();
 
         return this.rowlist.keys().each(function(n) {
+            n = parseInt(n, 10);
             if (n >= minrow) {
                 var id = this.rowlist.get(n), r;
                 if (rownums.include(n)) {
@@ -1795,16 +1825,28 @@ ViewPort_Selection = Class.create({
     //   regex - Matches the RegExp contained in the query.
     search: function(params)
     {
-        return this._search(params, this.get('dataob'));
-    },
-
-    _search: function(params, data)
-    {
-        return new ViewPort_Selection(this.buffer, 'uid', data.findAll(function(i) {
+        return new ViewPort_Selection(this.buffer, 'uid', this.get('dataob').findAll(function(i) {
             // i = data object
             return $H(params).all(function(k) {
                 // k.key = search key; k.value = search criteria
                 return $H(k.value).all(function(s) {
+                    // Normalize dynamically created values. We know the
+                    // required types for these values, and certain browsers
+                    // do strict type-checking (e.g. Chrome).
+                    switch (k.key) {
+                    case 'VP_domid':
+                    case 'VP_id':
+                        s.value = s.value.invoke('toString');
+                        break;
+
+                    case 'VP_rownum':
+                        s.value = s.value.collect(function(i) {
+                            var val = parseInt(i, 10);
+                            return isNaN(val) ? null : val;
+                        }).compact();
+                        break;
+                    }
+
                     // s.key = search type; s.value = search query
                     switch (s.key) {
                     case 'equal':

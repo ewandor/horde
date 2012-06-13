@@ -2,7 +2,7 @@
 /**
  * The Horde_Help:: class provides an interface to the online help subsystem.
  *
- * Copyright 1999-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 1999-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -66,6 +66,14 @@ class Horde_Help
             }
             break;
         }
+        /* SimpleXML cannot deal with mixed text/data nodes. Convert all text descendants of para to <text> tags */
+        $dom = dom_import_simplexml($this->_xml);
+        $xpath = new DOMXpath($dom->ownerDocument);
+        $textnodes = $xpath->query('//para/text()');
+        foreach ($textnodes as $text) {
+            $text->parentNode->replaceChild(new DOMElement('text', $text->nodeValue), $text);
+        }
+        $this->_xml = simplexml_import_dom($dom);
     }
 
     /**
@@ -107,7 +115,9 @@ class Horde_Help
     }
 
     /**
-     * TODO
+     * Process a help node
+     * @param SimpleXMLElement An XML help node representation
+     * @return string an output string with HTML
      */
     protected function _processNode($node)
     {
@@ -126,7 +136,9 @@ class Horde_Help
                     'topic'  => $child->attributes()->entry
                 ))) . strval($child) . '</a>';
                 break;
-
+            case 'text':
+                $out .= strval($child);
+                break;
             case 'eref':
                 $out .= Horde::link($child->attributes()->url, null, '', '_blank') . strval($child) . '</a>';
                 break;

@@ -1,7 +1,7 @@
 /**
  * compose.js - Javascript code used in the DIMP compose view.
  *
- * Copyright 2005-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2005-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -259,6 +259,7 @@ var DimpCompose = {
                         r.msgs = [];
                     }
                     if (DIMP.conf_compose.close_draft) {
+                        $('attach_list').childElements().invoke('remove');
                         return this.closeCompose();
                     }
                 }
@@ -279,7 +280,7 @@ var DimpCompose = {
                     }
 
                     if (d.log) {
-                        DimpCore.base.DimpBase.updateMsgLog(d.log, { uid: d.uid, mailbox: d.mbox });
+                        DimpCore.base.DimpBase.updateMsgLog(d.log, { uid: d.uid, mbox: d.mbox });
                     }
 
                     if (!DIMP.conf_compose.qreply) {
@@ -287,12 +288,19 @@ var DimpCompose = {
                         r.msgs = [];
                     }
                 }
+
+                $('attach_list').childElements().invoke('remove');
                 return this.closeCompose();
 
             case 'redirectMessage':
                 if (this.baseAvailable()) {
                     if (d.log) {
-                        DimpCore.base.DimpBase.updateMsgLog(d.log, { uid: d.uid, mailbox: d.mbox });
+                        d.log.each(function(l) {
+                            DimpCore.base.DimpBase.updateMsgLog(l.log, {
+                                mbox: l.mbox,
+                                uid: l.uid
+                            });
+                        });
                     }
 
                     if (!DIMP.conf_compose.qreply) {
@@ -300,6 +308,8 @@ var DimpCompose = {
                         r.msgs = [];
                     }
                 }
+
+                $('attach_list').childElements().invoke('remove');
                 return this.closeCompose();
 
             case 'addAttachment':
@@ -577,6 +587,11 @@ var DimpCompose = {
             break;
         }
 
+        if (opts.reply_lang) {
+            $('langnotice').down('SPAN.langNoticeList').setText(opts.reply_lang.join(', '));
+            $('noticerow', 'langnotice').invoke('show');
+        }
+
         this.setBodyText(msg);
         this.resizeMsgArea();
 
@@ -735,6 +750,7 @@ var DimpCompose = {
     removeAttach: function(e)
     {
         var ids = [];
+
         e.each(function(n) {
             n = $(n);
             ids.push(n.retrieve('atc_id'));
@@ -747,9 +763,11 @@ var DimpCompose = {
                 duration: 0.4
             });
         }, this);
+
         if (!$('attach_list').childElements().size()) {
             $('attach_list').hide();
         }
+
         DimpCore.doAction('deleteAttach', { atc_indices: Object.toJSON(ids), imp_compose: $F('composeCache') });
     },
 
@@ -822,7 +840,7 @@ var DimpCompose = {
              * that size by the available height, round down to the lowest
              * integer row, and resize the textarea. */
             msg = $('composeMessage');
-            rows = parseInt(mah / (msg.getHeight() / msg.readAttribute('rows')), 10);
+            rows = Math.max(0, parseInt(mah / (msg.getHeight() / msg.readAttribute('rows')), 10));
 
             if (!isNaN(rows)) {
                 /* Due to the funky (broken) way some browsers (FF) count
@@ -949,8 +967,6 @@ var DimpCompose = {
             case 'redirect_sendto':
                 if (orig.match('TD.label SPAN')) {
                     this.openAddressbook({
-                        formfield: 'redirect_to',
-                        formname: 'redirect',
                         to_only: 1
                     });
                 }
@@ -1021,6 +1037,26 @@ var DimpCompose = {
             this.uploadAttachment();
             break;
         }
+    },
+
+    onContactsUpdate: function(e)
+    {
+        switch (e.memo.field) {
+        case 'bcc':
+        case 'cc':
+            if (!$('send' + e.memo.field).visible()) {
+                this.toggleCC(e.memo.field);
+            }
+            break;
+
+        case 'to':
+            if (DIMP.conf_compose.redirect) {
+                e.memo.field = 'redirect_to';
+            }
+            break;
+        }
+
+        ImpComposeBase.updateAddressField($(e.memo.field), e.memo.value);
     },
 
     onDomLoad: function()
@@ -1113,6 +1149,7 @@ var DimpCompose = {
 
 /* Attach event handlers. */
 document.observe('dom:loaded', DimpCompose.onDomLoad.bind(DimpCompose));
+document.observe('ImpContacts:update', DimpCompose.onContactsUpdate.bindAsEventListener(DimpCompose));
 document.observe('TextareaResize:resize', DimpCompose.resizeMsgArea.bind(DimpCompose));
 
 /* Click handler. */

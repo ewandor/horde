@@ -2,10 +2,10 @@
 /**
  * Turba data.php.
  *
- * Copyright 2001-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2001-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file LICENSE for license information (ASL).  If you
- * did not receive this file, see http://www.horde.org/licenses/asl.php.
+ * did not receive this file, see http://www.horde.org/licenses/apache.
  *
  * @author Jan Schneider <jan@horde.org>
  */
@@ -48,30 +48,14 @@ function _emptyAttributeFilter($var)
  */
 function _getBareEmail($address, $allow_multi = false)
 {
-    // Empty values are still empty.
-    if (!$address) {
-        return $address;
-    }
-
     $rfc822 = new Horde_Mail_Rfc822();
-
-    // Split multiple email addresses
-    if ($allow_multi) {
-        $addrs = Horde_Mime_Address::explode($address);
-    } else {
-        $addrs = array($address);
+    try {
+        return Horde_Mime_Address::addrArray2String($rfc822->parseAddressList($address, array(
+            'limit' => $allow_multi ? 0 : 1
+        )));
+    } catch (Horde_Mail_Exception $e) {
+        return '';
     }
-
-    $result = array();
-    foreach ($addrs as $addr) {
-        $addr = trim($addr);
-
-        if ($rfc822->validateMailbox($addr)) {
-            $result[] = Horde_Mime_Address::writeAddress($addr->mailbox, $addr->host);
-        }
-    }
-
-    return implode(', ', $result);
 }
 
 require_once dirname(__FILE__) . '/lib/Application.php';
@@ -444,6 +428,7 @@ if (is_array($next_step)) {
         }
 
         $error = false;
+        $imported = 0;
         foreach ($next_step as $row) {
             if ($row instanceof Horde_Icalendar_Vcard) {
                 $row = $driver->toHash($row);
@@ -476,6 +461,7 @@ if (is_array($next_step)) {
 
                 try {
                     $driver->add($row);
+                    $imported++;
                 } catch (Turba_Exception $e) {
                     $notification->push(sprintf(_("There was an error importing the data: %s"), $e->getMessage()), 'horde.error');
                     $error = true;
@@ -489,7 +475,7 @@ if (is_array($next_step)) {
                 }
             }
         }
-        if (!$error) {
+        if (!$error && $imported) {
             $notification->push(sprintf(_("%s file successfully imported."),
                                         $file_types[$session->get('horde', 'import_data/format')]), 'horde.success');
         }

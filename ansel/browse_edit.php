@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 1999-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 1999-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl
@@ -15,10 +15,13 @@ $layout = $blocks->getLayoutManager();
 // Handle requested actions.
 $layout->handle(Horde_Util::getFormData('action'),
                 (int)Horde_Util::getFormData('row'),
-                (int)Horde_Util::getFormData('col'),
-                Horde_Util::getFormData('url'));
+                (int)Horde_Util::getFormData('col'));
 if ($layout->updated()) {
     $prefs->setValue('myansel_layout', $layout->serialize());
+    if (Horde_Util::getFormData('url')) {
+        $url = new Horde_Url(Horde_Util::getFormData('url'));
+        $url->unique()->redirect();
+    }
 }
 
 $title = _("My Photos :: Add Content");

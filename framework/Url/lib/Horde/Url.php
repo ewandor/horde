@@ -2,7 +2,7 @@
 /**
  * This file contains the Horde_Url class for manipulating URLs.
  *
- * Copyright 2009-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2009-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -256,7 +256,7 @@ class Horde_Url
             $url .= '?' . implode($raw ? '&' : '&amp;', $url_params);
         }
         if ($this->anchor) {
-            $url .= '#' . rawurlencode($this->anchor);
+            $url .= '#' . ($raw ? $this->anchor : rawurlencode($this->anchor));
         }
 
         return strval($url);

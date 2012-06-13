@@ -2,7 +2,7 @@
 /**
  * This class provides an interface to all identities a user might have.
  *
- * Copyright 2001-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2001-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -331,7 +331,7 @@ class Horde_Prefs_Identity
         try {
             Horde_Mime_Address::parseAddressList($this->getValue($this->_prefnames['from_addr'], $identity), array('validate' => true));
         } catch (Horde_Mime_Exception $e) {
-            throw new Horde_Prefs_Exception($e);
+            throw new Horde_Prefs_Exception(sprintf(Horde_Prefs_Translation::t("\"%s\" is not a valid email address."), $this->getValue($this->_prefnames['from_addr'], $identity)));
         }
     }
 

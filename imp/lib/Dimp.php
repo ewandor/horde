@@ -2,7 +2,7 @@
 /**
  * DIMP Base Class - provides dynamic view functions.
  *
- * Copyright 2005-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2005-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -45,7 +45,7 @@ class IMP_Dimp
     }
 
     /**
-     * Output everything up to but not including the <body> tag.
+     * Output everything up to, and including, the <body> tag.
      *
      * @param string $title   The title of the page.
      * @param array $scripts  Any additional scripts that need to be loaded.
@@ -60,6 +60,7 @@ class IMP_Dimp
             array('sound.js', 'horde'),
             array('horde.js', 'horde'),
             array('dimpcore.js', 'imp'),
+            array('indices.js', 'imp'),
             array('growler.js', 'horde')
         );
         foreach (array_merge($core_scripts, $scripts) as $val) {
@@ -78,37 +79,6 @@ class IMP_Dimp
         // http://developer.yahoo.com/performance/rules.html#flush
         echo Horde::endBuffer();
         flush();
-    }
-
-    /**
-     * Return information about the current attachments for a message
-     *
-     * @param IMP_Compose $imp_compose  An IMP_Compose object.
-     *
-     * @return array  An array of arrays with the following keys:
-     *   - num: (integer) The current attachment number
-     *   - name: (string) The HTML encoded attachment name
-     *   - type: (string) The MIME type of the attachment
-     *   - size: (string) The size of the attachment in KB
-     */
-    static public function getAttachmentInfo($imp_compose)
-    {
-        $fwd_list = array();
-
-        if (count($imp_compose)) {
-            foreach ($imp_compose as $atc_num => $data) {
-                $mime = $data['part'];
-
-                $fwd_list[] = array(
-                    'name' => htmlspecialchars($mime->getName(true)),
-                    'num' => $atc_num,
-                    'type' => $mime->getType(),
-                    'size' => $mime->getSize()
-                );
-            }
-        }
-
-        return $fwd_list;
     }
 
     /**

@@ -3,9 +3,16 @@
  * The Turba_View_List:: class provides an interface for objects that
  * visualize Turba_List objects.
  *
- * @author  Chuck Hagenbuch <chuck@horde.org>
- * @author  Jon Parise <jon@csh.rit.edu>
- * @package Turba
+ * Copyright 2000-2012 Horde LLC (http://www.horde.org/)
+ *
+ * See the enclosed file LICENSE for license information (ASL).  If you did
+ * did not receive this file, see http://www.horde.org/licenses/apache.
+ *
+ * @author   Chuck Hagenbuch <chuck@horde.org>
+ * @author   Jon Parise <jon@csh.rit.edu>
+ * @category Horde
+ * @license  http://www.horde.org/licenses/apache ASL
+ * @package  Turba
  */
 class Turba_View_List implements Countable
 {
@@ -102,14 +109,17 @@ class Turba_View_List implements Countable
      *
      * @return Turba_View_List
      */
-    public function __construct($list, array $controls = null, array $columns = null)
+    public function __construct($list, array $controls = null,
+                                array $columns = null)
     {
-        if ($controls === null) {
-            $controls = array('Mark' => true,
-                              'Edit' => true,
-                              'Vcard' => true,
-                              'Group' => true,
-                              'Sort' => true);
+        if (is_null($controls)) {
+            $controls = array(
+                'Mark' => true,
+                'Edit' => true,
+                'Vcard' => true,
+                'Group' => true,
+                'Sort' => true
+            );
         }
         $this->columns = $columns;
         $this->list = $list;
@@ -166,12 +176,10 @@ class Turba_View_List implements Countable
         $hasDelete = $driver->hasPermission(Horde_Perms::DELETE);
         $hasEdit = $driver->hasPermission(Horde_Perms::EDIT);
         $hasExport = ($GLOBALS['conf']['menu']['import_export'] && !empty($GLOBALS['cfgSources'][$default_source]['export']));
+        $vars = Horde_Variables::getDefaultVariables();
 
         list($addToList, $addToListSources) = $this->getAddSources();
-        $viewurl = Horde::url('browse.php')->add(array(
-            'key' => Horde_Util::getFormData('key'),
-            'url' => Horde::selfUrl(true, false, true)
-        ));
+
         if ($this->type == 'search') {
             $page = Horde_Util::getFormData('page', 0);
             $numitem = count($this);
@@ -204,7 +212,6 @@ class Turba_View_List implements Countable
                 'source' => Horde_Util::getFormData('source', $default_source)
             ));
             $viewurl = Horde::url('search.php')->add($params);
-            $vars = Horde_Variables::getDefaultVariables();
             $pager = new Horde_Core_Ui_Pager('page', $vars,
                                         array('num' => $numitem,
                                               'url' => $viewurl,
@@ -224,6 +231,13 @@ class Turba_View_List implements Countable
             }
             $listHtml = $this->getAlpha($numDisplayed, $page);
             $pagerHeader = 'alphaPager.inc';
+
+            $viewurl = Horde::url('browse.php')->add(array(
+                'show' => $vars->get('show', 'all')
+            ));
+            if (isset($vars->key)) {
+                $viewurl->add('key', $vars->key);
+            }
         }
 
         if ($numDisplayed) {
@@ -300,7 +314,6 @@ class Turba_View_List implements Countable
     }
 
     /**
-     *
      * @param integer $i
      * @param string $title
      *
@@ -382,7 +395,6 @@ class Turba_View_List implements Countable
     }
 
     /**
-     *
      * @param integer $numDisplayed
      * @param object $filter         A Turba_View_List filter object
      *
@@ -416,6 +428,8 @@ class Turba_View_List implements Countable
         return ob_get_clean();
     }
 
+    /**
+     */
     public function getAddSources()
     {
         global $addSources;

@@ -3,7 +3,7 @@
  <name>Horde_Role</name>
  <channel>pear.horde.org</channel>
  <summary>PEAR installer role used to install Horde components</summary>
- <description>This package provides a method for PEAR to install Horde components into a base Horde installation.</description>
+ <description>Allows PEAR to install Horde components into a base Horde installation.</description>
  <lead>
   <name>Michael Slusarz</name>
   <user>slusarz</user>
@@ -28,7 +28,7 @@
  </stability>
  <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
  <notes>
-* 
+* [rla] Add license file.
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
@@ -169,7 +169,7 @@
    <date>2011-04-06</date>
    <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
    <notes>
-* 
+* [rla] Add license file.
    </notes>
   </release>
  </changelog>

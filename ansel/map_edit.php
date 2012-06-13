@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2009-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2009-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -91,13 +91,13 @@ if (count($imgs) > 0) {
     foreach ($imgs as $id => $data) {
         if ($id != $image_id) {
             if (!empty($data['image_location'])) {
-                $title = $data['image_location'];
+                $iTitle = $data['image_location'];
             } else {
-                $title = _point2Deg($data['image_latitude'], true)
+                $iTitle = _point2Deg($data['image_latitude'], true)
                     . ' ' . _point2Deg($data['image_longitude']);
             }
             $tempurl = new Horde_Url('#');
-            $other_images .= $tempurl->link(array('title' => $title, 'onclick' => "mapEdit.setLocation('" . $data['image_latitude'] . "', '" . $data['image_longitude'] . "', '" . $data['image_location'] . "');return false")) . '<img src="' . Ansel::getImageUrl($id, 'mini', true) . '" alt="[thumbnail]" /></a>';
+            $other_images .= $tempurl->link(array('title' => $iTitle, 'onclick' => "mapEdit.setLocation('" . $data['image_latitude'] . "', '" . $data['image_longitude'] . "', '" . $data['image_location'] . "');return false")) . '<img src="' . Ansel::getImageUrl($id, 'mini', true) . '" alt="[thumbnail]" /></a>';
         }
     }
     $other_images .= '</div>';

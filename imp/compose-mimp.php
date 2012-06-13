@@ -18,7 +18,7 @@
  *   - to_expand_[1-5]: (string) Expand matches for To addresses.
  *   - u: (string) Unique ID (cache buster).
  *
- * Copyright 2002-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2002-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -184,22 +184,16 @@ case 'f':
 
 // 'rc' = redirect compose
 case 'rc':
-    try {
-        $imp_contents = $imp_ui->getContents();
-    } catch (IMP_Exception $e) {
-        $notification->push($e, 'horde.error');
-        break;
-    }
-    $imp_compose->redirectMessage($imp_contents);
+    $imp_compose->redirectMessage($imp_ui->getIndices());
     $title = _("Redirect");
     break;
 
 case _("Redirect"):
     try {
-        $imp_compose->sendRedirectMessage($imp_ui->getAddressList($header['to']));
+        $num_msgs = $imp_compose->sendRedirectMessage($imp_ui->getAddressList($header['to']));
         $imp_compose->destroy('send');
 
-        $notification->push(_("Message redirected successfully."), 'horde.success');
+        $notification->push(ngettext("Message redirected successfully.", "Messages redirected successfully.", count($num_msgs)), 'horde.success');
         require IMP_BASE . '/mailbox-mimp.php';
         exit;
     } catch (Horde_Exception $e) {
@@ -271,11 +265,6 @@ case _("Send"):
         break;
 
     case _("Send"):
-        $sig = $identity->getSignature();
-        if (!empty($sig)) {
-            $message .= "\n" . $sig;
-        }
-
         $options = array(
             'identity' => $identity,
             'readreceipt' => ($prefs->getValue('request_mdn') == 'always'),
@@ -284,7 +273,7 @@ case _("Send"):
         );
 
         try {
-            if ($imp_compose->buildAndSendMessage($message, $header, $options)) {
+            if ($imp_compose->buildAndSendMessage($message . $identity->getSignature(), $header, $options)) {
                 $imp_compose->destroy('send');
 
                 $notification->push(_("Message sent successfully."), 'horde.success');

@@ -28,11 +28,11 @@
   <email>mrubinsk@horde.org</email>
   <active>yes</active>
  </developer>
- <date>2011-10-06</date>
- <time>12:30:16</time>
+ <date>2012-05-29</date>
+ <time>13:44:08</time>
  <version>
-  <release>1.5.1</release>
-  <api>1.5.0</api>
+  <release>1.9.2</release>
+  <api>1.9.0</api>
  </version>
  <stability>
   <release>stable</release>
@@ -40,11 +40,7 @@
  </stability>
  <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
  <notes>
-* [jan] Fix PostgreSQL DSN when using SQL authentication (Bug #10538).
-* [mjr] Add factory for Horde_Service_UrlShortener.
-* [mms] Fix minChars behavior in autocomplete javascript code.
-* [mms] Allow in-page base64 image encoding to be disabled via Horde configuration.
-* [jan] Allow both application and interface names in &lt;configspecial&gt;.
+* 
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
@@ -88,10 +84,16 @@
         </dir> <!-- /lib/Horde/Core/Ajax/Imple/Geocoder -->
         <file name="AutoCompleter.php" role="php" />
         <file name="SpellChecker.php" role="php" />
+        <file name="WeatherLocationAutoCompleter.php" role="php" />
        </dir> <!-- /lib/Horde/Core/Ajax/Imple -->
        <file name="Application.php" role="php" />
        <file name="Imple.php" role="php" />
       </dir> <!-- /lib/Horde/Core/Ajax -->
+      <dir name="Alarm">
+       <dir name="Handler">
+        <file name="Notify.php" role="php" />
+       </dir> <!-- /lib/Horde/Core/Alarm/Handler -->
+      </dir> <!-- /lib/Horde/Core/Alarm -->
       <dir name="Auth">
        <dir name="Signup">
         <file name="Base.php" role="php" />
@@ -190,6 +192,7 @@
        <file name="UrlShortener.php" role="php" />
        <file name="Vfs.php" role="php" />
        <file name="View.php" role="php" />
+       <file name="Weather.php" role="php" />
       </dir> <!-- /lib/Horde/Core/Factory -->
       <dir name="Group">
        <file name="Ldap.php" role="php" />
@@ -582,9 +585,13 @@
        <file name="KolabServerTest.php" role="test" />
        <file name="KolabSessionTest.php" role="test" />
       </dir> <!-- /test/Horde/Core/Factory -->
+      <dir name="Stub">
+       <file name="Registry.php" role="test" />
+      </dir> <!-- /test/Horde/Core/Stub -->
       <file name="AllTests.php" role="test" />
       <file name="Autoload.php" role="test" />
       <file name="phpunit.xml" role="test" />
+      <file name="RegistryTest.php" role="test" />
       <file name="UrlTest.php" role="test" />
      </dir> <!-- /test/Horde/Core -->
     </dir> <!-- /test/Horde -->
@@ -851,6 +858,9 @@
     <max>2.0.0</max>
     <exclude>2.0.0</exclude>
    </package>
+   <extension>
+    <name>session</name>
+   </extension>
   </required>
   <optional>
    <package>
@@ -877,7 +887,7 @@
    <package>
     <name>Horde_Form</name>
     <channel>pear.horde.org</channel>
-    <min>1.0.0</min>
+    <min>1.1.0</min>
     <max>2.0.0</max>
     <exclude>2.0.0</exclude>
    </package>
@@ -1069,7 +1079,9 @@
    <install as="Horde/Core/Ajax/Imple.php" name="lib/Horde/Core/Ajax/Imple.php" />
    <install as="Horde/Core/Ajax/Imple/AutoCompleter.php" name="lib/Horde/Core/Ajax/Imple/AutoCompleter.php" />
    <install as="Horde/Core/Ajax/Imple/SpellChecker.php" name="lib/Horde/Core/Ajax/Imple/SpellChecker.php" />
+   <install as="Horde/Core/Ajax/Imple/WeatherLocationAutoCompleter.php" name="lib/Horde/Core/Ajax/Imple/WeatherLocationAutoCompleter.php" />
    <install as="Horde/Core/Ajax/Imple/Geocoder/Geonames.php" name="lib/Horde/Core/Ajax/Imple/Geocoder/Geonames.php" />
+   <install as="Horde/Core/Alarm/Handler/Notify.php" name="lib/Horde/Core/Alarm/Handler/Notify.php" />
    <install as="Horde/Core/Auth/Application.php" name="lib/Horde/Core/Auth/Application.php" />
    <install as="Horde/Core/Auth/Composite.php" name="lib/Horde/Core/Auth/Composite.php" />
    <install as="Horde/Core/Auth/Imsp.php" name="lib/Horde/Core/Auth/Imsp.php" />
@@ -1151,6 +1163,7 @@
    <install as="Horde/Core/Factory/UrlShortener.php" name="lib/Horde/Core/Factory/UrlShortener.php" />
    <install as="Horde/Core/Factory/Vfs.php" name="lib/Horde/Core/Factory/Vfs.php" />
    <install as="Horde/Core/Factory/View.php" name="lib/Horde/Core/Factory/View.php" />
+   <install as="Horde/Core/Factory/Weather.php" name="lib/Horde/Core/Factory/Weather.php" />
    <install as="Horde/Core/Group/Ldap.php" name="lib/Horde/Core/Group/Ldap.php" />
    <install as="Horde/Core/Imsp/Utils.php" name="lib/Horde/Core/Imsp/Utils.php" />
    <install as="Horde/Core/Log/Logger.php" name="lib/Horde/Core/Log/Logger.php" />
@@ -1280,10 +1293,12 @@
    <install as="Horde/Core/AllTests.php" name="test/Horde/Core/AllTests.php" />
    <install as="Horde/Core/Autoload.php" name="test/Horde/Core/Autoload.php" />
    <install as="Horde/Core/phpunit.xml" name="test/Horde/Core/phpunit.xml" />
+   <install as="Horde/Core/RegistryTest.php" name="test/Horde/Core/RegistryTest.php" />
    <install as="Horde/Core/UrlTest.php" name="test/Horde/Core/UrlTest.php" />
    <install as="Horde/Core/Factory/GroupTest.php" name="test/Horde/Core/Factory/GroupTest.php" />
    <install as="Horde/Core/Factory/KolabServerTest.php" name="test/Horde/Core/Factory/KolabServerTest.php" />
    <install as="Horde/Core/Factory/KolabSessionTest.php" name="test/Horde/Core/Factory/KolabSessionTest.php" />
+   <install as="Horde/Core/Stub/Registry.php" name="test/Horde/Core/Stub/Registry.php" />
   </filelist>
  </phprelease>
  <changelog>
@@ -1587,12 +1602,12 @@
   </release>
   <release>
    <version>
-    <release>1.5.1</release>
-    <api>1.5.0</api></version>
+    <release>1.6.0</release>
+    <api>1.6.0</api></version>
    <stability>
     <release>stable</release>
     <api>stable</api></stability>
-   <date>2011-10-06</date>
+   <date>2011-10-11</date>
    <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
    <notes>
 * [jan] Fix PostgreSQL DSN when using SQL authentication (Bug #10538).
@@ -1600,6 +1615,172 @@
 * [mms] Fix minChars behavior in autocomplete javascript code.
 * [mms] Allow in-page base64 image encoding to be disabled via Horde configuration.
 * [jan] Allow both application and interface names in &lt;configspecial&gt;.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.6.1</release>
+    <api>1.6.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-10-28</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* [jan] Fix resetting authentication credentials (Bug #10228).
+* [jan] Correctly render keyval_multienum form field contents.
+* [jan] Don&apos;t use Xcache in CLI scripts (Bug #10288).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.7.0</release>
+    <api>1.7.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-11-02</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* [mms] Detect @import tags in CSS and add to compressed data.
+* [mjr] Add ability to remove temporary files at session shutdown.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.8.0</release>
+    <api>1.8.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-11-22</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* [jan] Update Estonian translation.
+* [jan] Update Hungarian translation.
+* [jan] Fix tests to work with PHPUnit 3.6.
+* [mjr] Add Horde_Service_Weather factory.
+* [mms] Fix importing CSS data in cache files.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.8.1</release>
+    <api>1.8.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-12-06</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* [gwr] Fixed hiding menu entries that should not be displayed to admin.
+* [gwr] Fixed Kolab anonymous bind.
+* [jan] Update Japanese translation (Hiromi Kimura &lt;hiromi@tac.tsukuba.ac.jp&gt;).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.8.2</release>
+    <api>1.8.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-12-13</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* [mjr] Allow separate ActiveSync logs per device.
+* [jan] Make the lifetime of cached weather information configurable (Arjen de Korte, Request #10848).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.8.3</release>
+    <api>1.8.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-12-23</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* [mjr] Fix implementation of SENDMAIL ActiveSync command. Fixes sending of meeting requests from device.
+* [mjr] Fix issue that caused ActiveSync failure when using device specific logging in certain cases.
+* [mms] Fix merging config data (Bug #10381).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.8.4</release>
+    <api>1.8.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-01-31</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* [mjr] Fix issue with autocompletion that would cause it to fail in certain circumstances (Bug #10904).
+* [mms] Remove trailing semicolon when replacing @import statements.
+* [mjr] Fix issue that could cause failure of ActiveSync due to incorrect packing of binary data.
+* [jan] Use separate database connection for SQL session handler (Bug #10906).
+* [mms] Fix parsing DB config when using splitread database setup.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.8.5</release>
+    <api>1.8.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-02-28</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* [jan] Fix setting default values for HTML signatures.
+* [mjr] Throw exception if no weather service configured (Bug #11005).
+* [mms] Fix viewable prefs when toggling from Hide-&gt;Show Advanced.
+* [mms] Better error message when missing required parameters (Bug #10979).
+* [mms] Add Horde_Core_Alarm_Handler_Notify class.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.9.0</release>
+    <api>1.9.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-04-10</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* [jan] Add parameters to specify field size of phone and email fields.
+* [jan] Log details too, if logging an exception.
+* [jan] Fix showing applications with &apos;admin&apos; status in the sidebar.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.9.1</release>
+    <api>1.9.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-05-29</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* [jan] Update Swedish translation.
+* [gwr] Fixed session based preferences.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.9.2</release>
+    <api>1.9.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-05-29</date>
+   <license uri="http://www.horde.org/licenses/lgpl21">LGPL-2.1</license>
+   <notes>
+* 
    </notes>
   </release>
  </changelog>

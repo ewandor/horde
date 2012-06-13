@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright 2007 Maintainable Software, LLC
- * Copyright 2008-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2008-2012 Horde LLC (http://www.horde.org/)
  *
  * @author     Mike Naberezny <mike@maintainable.com>
  * @author     Derek DeVries <derek@maintainable.com>
@@ -338,8 +338,8 @@ class Horde_Db_Adapter_MysqliTest extends PHPUnit_Framework_TestCase
 
     public function testQuoteBinary()
     {
-        // Test string is foo\0bar - should be 7 bytes long
-        $original = base64_decode('Zm9vAGJhcg==');
+        // Test string is foo\0ba'r - should be 8 bytes long
+        $original = base64_decode('Zm9vAGJhJ3I=');
 
         $table = $this->_conn->createTable('binary_testings');
             $table->column('data', 'binary', array('null' => false));
@@ -864,6 +864,20 @@ class Horde_Db_Adapter_MysqliTest extends PHPUnit_Framework_TestCase
 
         $afterChange = $this->_getColumn('sports', 'is_college');
         $this->assertEquals('varchar(255)', $afterChange->getSqlType());
+
+        $table = $this->_conn->createTable('text_to_binary');
+        $table->column('data', 'text');
+        $table->end();
+        $this->_conn->insert('INSERT INTO text_to_binary (data) VALUES (?)',
+                             array("foo\0bar"));
+
+        $this->_conn->changeColumn('text_to_binary', 'data', 'binary');
+
+        $afterChange = $this->_getColumn('text_to_binary', 'data');
+        $this->assertEquals('blob', $afterChange->getSqlType());
+        $this->assertEquals(
+            "foo\0bar",
+            $this->_conn->selectValue('SELECT data FROM text_to_binary'));
     }
 
     public function testChangeColumnLimit()
@@ -1268,6 +1282,35 @@ class Horde_Db_Adapter_MysqliTest extends PHPUnit_Framework_TestCase
         $this->assertEquals("SELECT * FROM documents ORDER BY name DESC", $result);
     }
 
+    public function testInterval()
+    {
+        $this->assertEquals('INTERVAL  1 DAY',
+                            $this->_conn->interval('1 DAY', ''));
+    }
+
+    public function testModifyDate()
+    {
+        $modifiedDate = $this->_conn->modifyDate('start', '+', 1, 'DAY');
+        $this->assertEquals('start + INTERVAL \'1\' DAY', $modifiedDate);
+
+        $t = $this->_conn->createTable('dates');
+        $t->column('start', 'datetime');
+        $t->column('end', 'datetime');
+        $t->end();
+        $this->_conn->insert(
+            'INSERT INTO dates (start, end) VALUES (?, ?)',
+            array(
+                '2011-12-10 00:00:00',
+                '2011-12-11 00:00:00'
+            )
+        );
+        $this->assertEquals(
+            1,
+            $this->_conn->selectValue('SELECT COUNT(*) FROM dates WHERE '
+                                      . $modifiedDate . ' = end')
+        );
+    }
+
     public function testBuildClause()
     {
         $this->assertEquals(
@@ -1429,12 +1472,14 @@ class Horde_Db_Adapter_MysqliTest extends PHPUnit_Framework_TestCase
             'cache_table',
             'charset_cp1257',
             'charset_utf8',
+            'dates',
             'my_sports',
             'octopi',
             'pk_tests',
             'schema_info',
             'sports',
             'testings',
+            'text_to_binary',
             'unit_tests',
             'users',
         );

@@ -336,20 +336,25 @@ class Kronolith_Api extends Horde_Registry_Api
                                     break;
                                 }
                             }
-                        } catch (Exception $e) {}
+                        } catch (Horde_Exception $e) {
+                        }
                         if (empty($modified) && !empty($created)) {
                             $modified = $created;
                         }
-                        if (!empty($modified) &&
-                            $modified >= $content->getAttribute('LAST-MODIFIED')) {
+                        try {
+                            if (!empty($modified) &&
+                                $modified >= $content->getAttribute('LAST-MODIFIED')) {
                                 // LAST-MODIFIED timestamp of existing entry
                                 // is newer: don't replace it.
                                 continue;
                             }
+                        } catch (Horde_Icalendar_Exception $e) {
+                        }
 
                         // Don't change creator/owner.
                         $event->creator = $existing_event->creator;
-                    } catch (Horde_Exception_NotFound $e) {}
+                    } catch (Horde_Exception_NotFound $e) {
+                    }
 
                     // Save entry.
                     $saved = $event->save();
@@ -452,12 +457,14 @@ class Kronolith_Api extends Horde_Registry_Api
             $calendars = array($calendars);
         }
 
-        $allowed = Kronolith::listInternalCalendars(false, Horde_Perms::READ);
         $driver = Kronolith::getDriver();
         $results = array();
         foreach ($calendars as $calendar) {
             if (!Kronolith::hasPermission($calendar, Horde_Perms::READ)) {
-                throw new Horde_Exception_PermissionDenied();
+                Horde::logMessage(sprintf(
+                    _("Permission Denied or Calendar Not Found: %s - skipping."),
+                    $calendar));
+                continue;
             }
             try {
                 $driver->open($calendar);
@@ -503,23 +510,21 @@ class Kronolith_Api extends Horde_Registry_Api
     public function listBy($action, $timestamp, $calendar = null, $end = null)
     {
         if (empty($calendar)) {
-            $cs = Kronolith::getSyncCalendars();
-            $calendars = Kronolith::listInternalCalendars(false, Horde_Perms::READ);
+            $cs = Kronolith::getSyncCalendars($action == 'delete');
             $results = array();
             foreach ($cs as $c) {
-                if (!isset($calendars[$c])) {
-                    throw new Horde_Exception_PermissionDenied();
-                }
-                $results = array_merge($results, $this->listBy($action, $timestamp, $c, $end));
+                $results = array_merge(
+                    $results, $this->listBy($action, $timestamp, $c, $end));
             }
-
             return $results;
         }
         $filter = array(array('op' => '=', 'field' => 'action', 'value' => $action));
         if (!empty($end)) {
             $filter[] = array('op' => '<', 'field' => 'ts', 'value' => $end);
         }
-        $histories = $GLOBALS['injector']->getInstance('Horde_History')->getByTimestamp('>', $timestamp, $filter, 'kronolith:' . $calendar);
+        $histories = $GLOBALS['injector']
+            ->getInstance('Horde_History')
+            ->getByTimestamp('>', $timestamp, $filter, 'kronolith:' . $calendar);
 
         // Strip leading kronolith:username:.
         return preg_replace('/^([^:]*:){2}/', '', array_keys($histories));
@@ -543,24 +548,19 @@ class Kronolith_Api extends Horde_Registry_Api
     {
         // Only get the calendar once
         $cs = Kronolith::getSyncCalendars();
-        $calendars = Kronolith::listInternalCalendars(false, Horde_Perms::READ);
         $changes = array(
             'add' => array(),
             'modify' => array(),
             'delete' => array());
 
         foreach ($cs as $c) {
-            if (!isset($calendars[$c])) {
-                throw new Horde_Exception_PermissionDenied();
-            }
-
              // New events
             $uids = $this->listBy('add', $start, $c, $end);
             if ($ignoreExceptions) {
                 foreach ($uids as $uid) {
                     try {
                         $event = Kronolith::getDriver()->getByUID($uid);
-                    } catch (Kronolith_Exception $e) {
+                    } catch (Exception $e) {
                         continue;
                     }
                     if (empty($event->baseid)) {
@@ -577,7 +577,7 @@ class Kronolith_Api extends Horde_Registry_Api
                 foreach ($uids as $uid) {
                     try {
                         $event = Kronolith::getDriver()->getByUID($uid);
-                    } catch (Kronolith_Exception $e) {
+                    } catch (Exception $e) {
                         continue;
                     }
                     if (empty($event->baseid)) {
@@ -587,8 +587,9 @@ class Kronolith_Api extends Horde_Registry_Api
             } else {
                 $changes['modify'] = array_keys(array_flip(array_merge($changes['modify'], $uids)));
             }
-            /* No way to figure out if this was an exception, so we must include all */
-            $changes['delete'] = array_keys(array_flip(array_merge($changes['delete'], $this->listBy('delete', $start, $c, $end))));
+            // No way to figure out if this was an exception, so we must include all
+            $changes['delete'] = array_keys(
+                array_flip(array_merge($changes['delete'], $this->listBy('delete', $start, $c, $end))));
         }
 
         return $changes;
@@ -1330,15 +1331,16 @@ class Kronolith_Api extends Horde_Registry_Api
      * Retrieve the list of used tag_names, tag_ids and the total number
      * of resources that are linked to that tag.
      *
-     * @param array $tags  An optional array of tag_ids. If omitted, all tags
-     *                     will be included.
+     * @param array $tags   An optional array of tag_ids. If omitted, all tags
+     *                      will be included.
+     * @param string $user  Restrict result to those tagged by $user.
      *
      * @return array  An array containing tag_name, and total
      */
-    public function listTagInfo($tags = null)
+    public function listTagInfo($tags = null, $user = null)
     {
         return $GLOBALS['injector']
-            ->getInstance('Kronolith_Tagger')->getTagInfo($tags);
+            ->getInstance('Kronolith_Tagger')->getTagInfo($tags, 500, null, $user);
     }
 
     /**

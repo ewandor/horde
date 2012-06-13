@@ -19,7 +19,7 @@ require_once 'Autoload.php';
 /**
  * Test for the Horde_Exception:: class.
  *
- * Copyright 2009 Horde LLC (http://www.horde.org/)
+ * Copyright 2009-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -69,6 +69,7 @@ class Horde_Exception_ExceptionTest extends  PHPUnit_Framework_TestCase
 
     public function testEmptyConstructionYieldsNotFoundMessage()
     {
+        setlocale(LC_MESSAGES, 'C');
         $e = new Horde_Exception_NotFound();
         $this->assertSame('Not Found', $e->getMessage());
     }
@@ -77,6 +78,7 @@ class Horde_Exception_ExceptionTest extends  PHPUnit_Framework_TestCase
 
     public function testEmptyConstructionYieldsPermissionDeniedMessage()
     {
+        setlocale(LC_MESSAGES, 'C');
         $e = new Horde_Exception_PermissionDenied();
         $this->assertSame('Permission Denied', $e->getMessage());
     }

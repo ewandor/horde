@@ -17,7 +17,7 @@
  *             (requires 'to' parameter also).
  *   - uids: UIDs of message to forward (only used when forwarding a message).
  *
- * Copyright 2005-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2005-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -55,7 +55,7 @@ if (isset($header['to']) &&
 
 $fillform_opts = array('noupdate' => 1);
 $get_sig = true;
-$msg = $vars->body;
+$msg = strval($vars->body);
 
 $js = array();
 
@@ -104,6 +104,10 @@ case 'reply_list':
         if (isset($reply_msg['reply_list_id'])) {
             $fillform_opts['reply_list_id'] = $reply_msg['reply_list_id'];
         }
+    }
+
+    if (!empty($reply_msg['lang'])) {
+        $fillform_opts['reply_lang'] = array_values($reply_msg['lang']);
     }
 
     switch ($reply_msg['type']) {
@@ -193,8 +197,7 @@ case 'forward_both':
 
 case 'forward_redirect':
     try {
-        $contents = $imp_ui->getContents($vars);
-        $imp_compose->redirectMessage($contents);
+        $imp_compose->redirectMessage($imp_ui->getIndices($vars));
         $get_sig = false;
         $title = _("Redirect");
         $vars->type = 'redirect';
@@ -226,6 +229,7 @@ case 'resume':
     break;
 
 case 'new':
+default:
     $rte = $show_editor = ($prefs->getValue('compose_html') && $session->get('imp', 'rteavail'));
     break;
 }
@@ -258,7 +262,7 @@ if ($vars->type == 'redirect') {
 
 $t = $injector->createInstance('Horde_Template');
 $t->setOption('gettext', true);
-$t->set('title', $title);
+$t->set('title', htmlspecialchars($title));
 
 $compose_result = IMP_Views_Compose::showCompose(array(
     'composeCache' => $imp_compose->getCacheId(),
@@ -300,7 +304,10 @@ IMP::status();
 $t->set('status', Horde::endBuffer());
 
 IMP_Dimp::header($title, $scripts);
-echo $t->fetch(IMP_TEMPLATES . '/dimp/compose/compose-base.html');
+
+Horde::startBuffer();
 Horde::includeScriptFiles();
 Horde::outputInlineScript();
-echo "</body>\n</html>";
+$t->set('script', Horde::endBuffer());
+
+echo $t->fetch(IMP_TEMPLATES . '/dimp/compose/compose-base.html');

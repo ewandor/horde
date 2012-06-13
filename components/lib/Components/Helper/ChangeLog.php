@@ -14,7 +14,7 @@
 /**
  * Components_Helper_ChangeLog:: helps with adding entries to the change log(s).
  *
- * Copyright 2010-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2010-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -48,7 +48,7 @@ class Components_Helper_ChangeLog
     }
 
     /**
-     * Update CHANGES file.
+     * Update package.xml file.
      *
      * @param string                 $log     The log entry.
      * @param Horde_Pear_Package_Xml $xml     The package xml handler.
@@ -64,7 +64,7 @@ class Components_Helper_ChangeLog
                 $xml->addNote($log);
                 file_put_contents($file, (string) $xml);
                 $this->_output->ok(
-                    'Added new note to ' . $file . '.'
+                    'Added new note to version ' . $xml->getVersion() . ' of ' . $file . '.'
                 );
             } else {
                 $this->_output->info(
@@ -165,7 +165,7 @@ class Components_Helper_ChangeLog
     {
         if (empty($options['pretend'])) {
             //@todo Error handling
-            return system($call);
+            return exec($call);
         } else {
             $this->_output->info(sprintf('Would run "%s" now.', $call));
         }

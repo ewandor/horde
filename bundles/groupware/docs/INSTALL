@@ -136,10 +136,8 @@ properly.
 
    a. File Upload Support
 
-      File upload support is **required** to allow attachments in mail
-      composition and to allow various importing features to work (e.g.
-      importing PGP or S/MIME keys, importing mbox files). To enable file
-      upload support:
+      File upload support is **required** to allow various importing features
+      to work. To enable file upload support:
 
           1. In your php.ini file, the following line **must** be present::
 
@@ -237,7 +235,7 @@ properly.
       support.  Without the extension, all S/MIME options will be disabled.
 
       Additionally, the OpenSSL PHP extension is REQUIRED if using TLS or SSL
-      to connect to the IMAP/POP3 server.
+      to connect to a server.
 
       See http://www.php.net/openssl for information on compiling OpenSSL
       into PHP.
@@ -277,6 +275,8 @@ properly.
 
         pecl install fileinfo
 
+      As of PHP 5.3.0, this module is automatically enabled by default.
+
    These PECL modules are **RECOMMENDED** to be installed if you need
    advanced functionality:
 
@@ -313,48 +313,6 @@ properly.
 
         pecl install memcache
 
-5. At least one IMAP or POP3 server.
-
-   While Horde Groupware is an application that is installed on a Web server
-   and is run from a Web browser, it is only an IMAP and POP3 *client*, like
-   Outlook, Apple Mail or Thunderbird. You must have access to an IMAP or POP3
-   server(s) on which your users' mail is stored in order to use Horde
-   Groupware.
-
-   IMAP is *strongly* recommended over POP3. See, e.g.,
-   http://www.imap.org/imap.vs.pop.brief.html
-
-   Freely available IMAP servers (for \*nix systems) that have been verified
-   to work with Horde Groupware include:
-
-   - Cyrus (http://asg.web.cmu.edu/cyrus/)
-   - Dovecot (http://www.dovecot.org/)
-   - Courier-IMAP (http://www.inter7.com/courierimap.html)
-
-   More available IMAP servers are:
-
-   - UW-IMAP (ftp://ftp.cac.washington.edu/imap/)
-   - Archiveopteryx (http://www.archiveopteryx.org/)
-
-   Most of these packages also include POP3 support as well.
-
-   The selected IMAP server MUST support IMAP4rev1 (RFC 3501).
-   The selected POP server MUST support POP3 (RFC 1939/STD 53).
-
-   .. Note:: If using a POP server, it MUST support the UIDL capability.
-             Caching, on-demand filtering, searching, and sorting will be
-             disabled; POP3 support is limited to essentially only viewing
-             messages and performing basic mail actions.
-
-6. Sendmail or equivalent.
-
-   Horde Groupware uses sendmail, or a program that implements the
-   ``sendmail(8)`` API (as included with postfix, qmail, and exim, among
-   others). If your system does not already have a full mail transport with a
-   sendmail interface, you can configure Horde Groupware to speak directly with
-   a remote SMTP server, but this may incur a performance penalty.
-
-
 The following non-PHP prerequisites are **RECOMMENDED**:
 
 1. aspell - Spelling Checker
@@ -369,13 +327,16 @@ The following non-PHP prerequisites are **RECOMMENDED**:
 
       http://aspell.sourceforge.net/
 
+2. Sendmail or SMTP server.
+
+   Horde Groupware sends mail via either a local sendmail or a remote SMTP
+   server.  It is **RECOMMENDED** that SMTP be used.
+
 
 Installing Horde Groupware
 ==========================
 
-There are several ways to install Horde Groupware. The recommended way to
-install Horde Groupware is using the PEAR installer. Alternatively it can be
-installed from tarballs.
+The **RECOMMENDED** way to install Horde Groupware is using the PEAR installer.
 
 
 Installing with PEAR
@@ -417,9 +378,14 @@ in your PHP configuration::
 Installing into separate PEAR
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. Warning:: Unless you really know **why** you want to do this, you probably
+             do **not** want to do this. Use the general PEAR installation
+             instructions from above instead.
+
 If you want to create a separate PEAR installation for installing Horde
 Groupware, independent from the system-wide PEAR installation, this can be done
-with the following commands. The paths are only examples of course::
+with the following commands (in this example, ``/var/www/groupware`` is used as
+the location of the web-accessible Horde directory)::
 
    mkdir /var/www/groupware
    pear config-create /var/www/groupware /var/www/groupware/pear.conf
@@ -428,7 +394,8 @@ with the following commands. The paths are only examples of course::
 Then follow the regular installation steps, but use the ``pear`` command from
 the PEAR installation you just created, e.g.::
 
-   /var/www/groupware/pear/pear -c /var/www/groupware/pear.conf channel-discover pear.horde.org
+   /var/www/groupware/pear/pear -c /var/www/groupware/pear.conf \
+       channel-discover pear.horde.org
 
 Finally update the .htaccess file in ``/var/www/groupware/`` or configure your
 web server in some other way to point PHP's ``include_path`` setting to the
@@ -461,7 +428,9 @@ installed::
 If you installed into a local PEAR installation, you need to tell PHP and PEAR
 where to find the installation and the script, e.g.::
 
-   PHP_PEAR_SYSCONF_DIR=/var/www/groupware php -d include_path=/var/www/groupware/pear/php /var/www/groupware/pear/groupware-install
+   PHP_PEAR_SYSCONF_DIR=/var/www/groupware php \
+       -d include_path=/var/www/groupware/pear/php \
+       /var/www/groupware/pear/groupware-install
 
 
 Configuring Horde Groupware
@@ -505,7 +474,7 @@ Configuring Horde Groupware
       $_prefs['prefname']['value'] = 'somedefault';
       $_prefs['prefname']['locked'] = true;
 
-   This works analogous with any other configuration file.
+   This works with any configuration file.
 
    .. Warning:: All configuration files in Horde Groupware are PHP scripts that
                 are executed by the web server. If you make an error in one of
@@ -570,13 +539,13 @@ Configuring Horde Groupware
       example, if your webserver runs as ``www.www``, do as follows::
 
          chown root.www config/*
-         chmod 0440 config/*
+         find config/ -type f -exec chmod 0440 '{}' \;
 
    b. User Passwords
 
       There are two channels by which, unless steps are taken to avoid it,
-      Horde Groupware encourages users to pass their IMAP and POP3 passwords
-      around the Internet unencrypted.
+      Horde Groupware encourages users to pass their passwords around the
+      Internet unencrypted.
 
       The first channel is between their browser and the Web server. We
       strongly recommend using an SSL-capable Web server to give users the
@@ -584,13 +553,13 @@ Configuring Horde Groupware
       server on which Horde Groupware is running; some sites may wish to
       disable non-SSL access entirely.
 
-      The second channel is between the Web server and their IMAP or POP3
-      server. The simplest way to avoid this is to have the mail server running
-      on the same system as the Web server, and configuring Horde Groupware to
-      connect to the IMAP or POP3 server on ``localhost`` instead of on the
-      Internet hostname. This is the default setup. In cases where that is not
-      possible, we recommend using IMAP-SSL or POP3-SSL to ensure that users'
-      passwords remain safe after they have entrusted them to Horde Groupware.
+      The second channel is between the Web server and authentication
+      backend. The simplest way to avoid this is to have the authentication
+      source running on the same system as the Web server, and configuring
+      Horde Groupware to connect to the backend on ``localhost`` instead of on
+      the Internet hostname. In cases where that is not possible, we recommend
+      using SSL or some other encryption layer to ensure that users' passwords
+      remain safe after they have entrusted them to Horde Groupware.
 
    b. Sessions
 

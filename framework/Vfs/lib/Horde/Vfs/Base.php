@@ -2,7 +2,7 @@
 /**
  * VFS API for abstracted file storage and access.
  *
- * Copyright 2002-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2002-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -51,7 +51,7 @@ abstract class Horde_Vfs_Base
     );
 
     /**
-     * The current size, in bytes, of the VFS item.
+     * The current size, in bytes, of the VFS tree.
      *
      * @var integer
      */
@@ -67,7 +67,7 @@ abstract class Horde_Vfs_Base
         $this->setParams(array(
             'user' => '',
             'vfs_quotalimit' => -1,
-            'vfs_quotaroot' => '/'
+            'vfs_quotaroot' => ''
         ));
         $this->setParams($params);
     }
@@ -193,7 +193,6 @@ abstract class Horde_Vfs_Base
         if (!($localFile = Horde_Util::getTempFile('vfs'))) {
             throw new Horde_Vfs_Exception('Unable to create temporary file.');
         }
-        register_shutdown_function(create_function('', 'unlink(\'' . addslashes($localFile) . '\');'));
 
         if (is_callable(array($this, 'readStream'))) {
             // Use a stream from the VFS if possible, to avoid reading all data
@@ -237,8 +236,7 @@ abstract class Horde_Vfs_Base
      * @return string  The file data.
      * @throws Horde_Vfs_Exception
      */
-    public function readByteRange($path, $name, &$offset, $length = -1,
-                                  &$remaining)
+    public function readByteRange($path, $name, &$offset, $length, &$remaining)
     {
         throw new Horde_Vfs_Exception('Not supported.');
     }
@@ -318,7 +316,7 @@ abstract class Horde_Vfs_Base
         if ($this->isFolder($path, $name)) {
             $this->_copyRecursive($path, $name, $dest);
         } else {
-            return $this->writeData($dest, $name, $this->read($path, $name), $autocreate);
+            $this->writeData($dest, $name, $this->read($path, $name), $autocreate);
         }
     }
 
@@ -517,9 +515,12 @@ abstract class Horde_Vfs_Base
             return $list;
         }
 
+        if (strlen($path)) {
+            $path .= '/';
+        }
         foreach ($list as $name => $values) {
             if ($values['type'] == '**dir') {
-                $list[$name]['subdirs'] = $this->listFolder($path . '/' . $name, $filter, $dotfiles, $dironly, $recursive);
+                $list[$name]['subdirs'] = $this->listFolder($path . $name, $filter, $dotfiles, $dironly, $recursive);
             }
         }
 
@@ -732,7 +733,8 @@ abstract class Horde_Vfs_Base
      */
     protected function _checkQuotaWrite($mode, $data)
     {
-        if ($this->_params['vfs_quotalimit'] == -1) {
+        if ($this->_params['vfs_quotalimit'] == -1 &&
+            is_null($this->_vfsSize)) {
             return;
         }
 
@@ -746,9 +748,12 @@ abstract class Horde_Vfs_Base
         }
 
         $vfssize = $this->getVFSSize();
-        if (($vfssize + $filesize) > $this->_params['vfs_quotalimit']) {
+        if ($this->_params['vfs_quotalimit'] > -1 &&
+            ($vfssize + $filesize) > $this->_params['vfs_quotalimit']) {
             throw new Horde_Vfs_Exception('Unable to write VFS file, quota will be exceeded.');
-        } elseif ($this->_vfsSize !== 0) {
+        }
+
+        if (!is_null($this->_vfsSize)) {
             $this->_vfsSize += $filesize;
         }
     }
@@ -763,8 +768,7 @@ abstract class Horde_Vfs_Base
      */
     protected function _checkQuotaDelete($path, $name)
     {
-        if (($this->_params['vfs_quotalimit'] != -1) &&
-            !empty($this->_vfsSize)) {
+        if (!is_null($this->_vfsSize)) {
             $this->_vfsSize -= $this->size($path, $name);
         }
     }
@@ -782,9 +786,8 @@ abstract class Horde_Vfs_Base
         if (strlen($path) > 0) {
             if (substr($path, -1) == '/') {
                 return $path . $name;
-            } else {
-                return $path . '/' . $name;
             }
+            return $path . '/' . $name;
         }
 
         return $name;

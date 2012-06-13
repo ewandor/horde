@@ -1,6 +1,34 @@
 ----------
-v2.0.6-git
+v2.0.9-git
 ----------
+
+
+
+------
+v2.0.8
+------
+
+[jan] Update Swedish translation (Per Olof Ljungmark <peo@bsdlabs.com>).
+[mms] Fix IMAP filtering on combination fields (Bug #11197).
+[jan] Fix showing blacklist option to mark message as deleted (Bug #11186).
+[jan] Update Italian translation (Massimo Malabotta <mmalabotta@units.it>).
+[jan] Fix folder names in Procmail rules if using Maildir (Bug #10113).
+[jan] Update Hungarian translation (Zoltán Németh <nemeth.zoltan@etit.hu>).
+[mms] Application initialization should only be done on first access.
+
+
+------
+v2.0.7
+------
+
+[jan] Update Japanese translation (Hiromi Kimura <hiromi@tac.tsukuba.ac.jp>).
+[jan] Set Return-Path: in Maildrop vacation driver (rsalmon@mbpgroup.com, Bug
+      #10568).
+
+
+------
+v2.0.6
+------
 
 [mms] Fix displaying From address in notification when filtering with IMAP
       driver.

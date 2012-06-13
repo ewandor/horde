@@ -5,14 +5,14 @@
  * This file defines Turba's external API interface. Other applications can
  * interact with Turba through this API.
  *
- * Copyright 2009-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2009-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file LICENSE for license information (ASL).  If you did
- * did not receive this file, see http://www.horde.org/licenses/asl.php.
+ * did not receive this file, see http://www.horde.org/licenses/apache.
  *
  * @author   Michael Slusarz <slusarz@horde.org>
  * @category Horde
- * @license  http://www.horde.org/licenses/asl.php ASL
+ * @license  http://www.horde.org/licenses/apache ASL
  * @package  Turba
  */
 class Turba_Api extends Horde_Registry_Api
@@ -51,8 +51,7 @@ class Turba_Api extends Horde_Registry_Api
         @list($source, $key) = explode('.', $id, 2);
         if (isset($GLOBALS['cfgSources'][$source]) && $key) {
             try {
-                $driver = $GLOBALS['injector']->getInstance('Turba_Factory_Driver')->create($source);
-                $object = $driver->getObject($key)->getValue('name');
+                return $GLOBALS['injector']->getInstance('Turba_Factory_Driver')->create($source)->getObject($key)->getValue('name');
             } catch (Turba_Exception $e) {}
         }
 
@@ -701,10 +700,7 @@ class Turba_Api extends Horde_Registry_Api
                             if (count($result)) {
                                 continue;
                             }
-                            foreach ($content as $attribute => $value) {
-                                $object->setValue($attribute, $value);
-                            }
-                            $content = $object->attributes;
+
                             $result = $driver->add($content);
                             if (!empty($content['category']) &&
                                 !in_array($content['category'], $categories)) {
@@ -732,11 +728,6 @@ class Turba_Api extends Horde_Registry_Api
             $content = $driver->toHash($content);
         }
 
-        foreach ($content as $attribute => $value) {
-            $object->setValue($attribute, $value);
-        }
-        $content = $object->attributes;
-
         // Check if the entry already exists in the data source:
         $result = $driver->search($content);
         if (count($result)) {
@@ -744,6 +735,15 @@ class Turba_Api extends Horde_Registry_Api
             throw new Turba_Exception(_("Already Exists"));
         }
 
+        // We can't use $object->setValue() here since that cannot be used with
+        // composite fields.
+        if (Horde::hookExists('encode_attribute', 'turba')) {
+            foreach ($content as $attribute => &$value) {
+                try {
+                    $value = Horde::callHook('encode_attribute', array($attribute, $value, null, null), 'turba');
+                } catch (Turba_Exception $e) {}
+            }
+        }
         $result = $driver->add($content);
 
         if (!empty($content['category']) &&
@@ -1074,6 +1074,13 @@ class Turba_Api extends Horde_Registry_Api
 
             case 'activesync':
                 $content = $driver->fromASContact($content);
+                /* Must check for ghosted properties for activesync requests */
+                foreach ($content as $attribute => $value) {
+                    if ($attribute != '__key') {
+                        $object->setValue($attribute, $value);
+                    }
+                }
+                return $object->store();
                 break;
 
             default:
@@ -1102,13 +1109,15 @@ class Turba_Api extends Horde_Registry_Api
      * @param boolean $forceSource  Whether to use the specified sources, even
      *                              if they have been disabled in the
      *                              preferences?
+     * @param array $returnFields   Only return these fields. Returns all fields
+     *                              if empty.
      *
      * @return array  Hash containing the search results.
      * @throws Turba_Exception
      */
     public function search($names = array(), $sources = array(),
                            $fields = array(), $matchBegin = false,
-                           $forceSource = false)
+                           $forceSource = false, $returnFields = array())
     {
         global $cfgSources, $attributes, $prefs;
 
@@ -1152,7 +1161,9 @@ class Turba_Api extends Horde_Registry_Api
                     continue;
                 }
 
-            $driver = $GLOBALS['injector']->getInstance('Turba_Factory_Driver')->create($source);
+            $driver = $GLOBALS['injector']
+                ->getInstance('Turba_Factory_Driver')
+                ->create($source);
 
             // Determine the name of the column to sort by.
             $columns = isset($sort_columns[$source])
@@ -1172,7 +1183,8 @@ class Turba_Api extends Horde_Registry_Api
                     }
                 }
 
-                $search = $driver->search($criteria, Turba::getPreferredSortOrder(), 'OR', array(), array(), $matchBegin);
+                $search = $driver->search(
+                    $criteria, Turba::getPreferredSortOrder(), 'OR', $returnFields, array(), $matchBegin);
                 if (!($search instanceof Turba_List)) {
                     continue;
                 }
@@ -1905,41 +1917,35 @@ class Turba_Api extends Horde_Registry_Api
      * Returns all contact groups.
      *
      * @return array  A list of group hashes.
-     * @throws Horde_Exception
+     * @throws Turba_Exception
      */
     public function getGroupObjects()
     {
-        $listEntries = array();
-        $sources = $this->getSourcesConfig(array('type' => 'sql'));
-        foreach ($sources as $key => $source) {
+        $ret = array();
+
+        foreach ($this->getSourcesConfig(array('type' => 'sql')) as $key => $source) {
             if (empty($source['map']['__type'])) {
                 continue;
             }
 
-            $db[$key] =  empty($source['params']['sql'])
-                    ? $GLOBALS['injector']->getInstance('Horde_Db_Adapter')
-                    : $GLOBALS['injector']->getInstance('Horde_Core_Factory_Db')->create('turba', $source['params']['sql']);
-
-            $sql = 'SELECT ' . $source['map']['__key'] . ' id,'
-                . $source['map']['__members'] . ' members,'
-                . $source['map']['email'] . ' email,'
-                . $source['map'][$source['list_name_field']]
-                . ' name FROM ' . $source['params']['table'] . ' WHERE '
-                . $source['map']['__type'] . ' = \'Group\'';
+            list($db, $sql) = $this->_getGroupObject($source, 'Group');
 
             try {
-                $results = $db[$key]->selectAll($sql);
+                $results = $db->selectAll($sql);
             } catch (Horde_Db_Exception $e) {
                 Horde::logMessage($e);
-                throw new Horde_Exception_Wrapped($e);
+                throw new Turba_Exception($e);
             }
 
             foreach ($results as $row) {
-                $listEntries[$key . ':' . $row['id']] = $row;
+                /* name is a reserved word in Postgresql (at a minimum). */
+                $row['name'] = $row['lname'];
+                unset($row['lname']);
+                $ret[$key . ':' . $row['id']] = $row;
             }
         }
 
-        return $listEntries;
+        return $ret;
     }
 
     /**
@@ -1972,12 +1978,12 @@ class Turba_Api extends Horde_Registry_Api
      * @param string $gid  The group identifier.
      *
      * @return array  A hash defining the group.
-     * @throws Horde_Exception
+     * @throws Turba_Exception
      */
     public function getGroupObject($gid)
     {
-        if (empty($gid) || strpos($gid, ':') === false) {
-            throw new Horde_Exception(sprintf('Unsupported group id: %s', $gid));
+        if (empty($gid) || (strpos($gid, ':') === false)) {
+            throw new Turba_Exception(sprintf('Unsupported group id: %s', $gid));
         }
 
         $sources = $this->getSourcesConfig(array('type' => 'sql'));
@@ -1985,21 +1991,35 @@ class Turba_Api extends Horde_Registry_Api
         if (empty($sources[$source])) {
             return array();
         }
-        $db = empty($sources[$source]['params']['sql'])
-            ? $GLOBALS['injector']->getInstance('Horde_Db_Adapter')
-            : $GLOBALS['injector']->getInstance('Horde_Core_Factory_Db')->create('turba', $sources[$source]['params']['sql']);
-        $sql = 'SELECT ' . $sources[$source]['map']['__members'] . ' members,'
-            . $sources[$source]['map']['email'] . ' email,'
-            . $sources[$source]['map'][$sources[$source]['list_name_field']]
-            . ' name FROM ' . $sources[$source]['params']['table'] . ' WHERE '
-            . $sources[$source]['map']['__key'] . ' = ' . $db->quoteString($id);
+
+        list($db, $sql) = $this->_getGroupObject($sources[$source], $id);
 
         try {
-            return $db->selectOne($sql);
+            $ret = $db->selectOne($sql);
+            $ret['name'] = $ret['lname'];
+            unset($ret['lname']);
+            return $ret;
         } catch (Horde_Db_Exception $e) {
             Horde::logMessage($e);
-            throw new Horde_Exception_Wrapped($e);
+            throw new Turba_Exception($e);
         }
+    }
+
+    /**
+     */
+    protected function _getGroupObject($source, $key)
+    {
+        $db = empty($source['params']['sql'])
+            ? $GLOBALS['injector']->getInstance('Horde_Db_Adapter')
+            : $GLOBALS['injector']->getInstance('Horde_Core_Factory_Db')->create('turba', $source['params']['sql']);
+
+        $sql = 'SELECT ' . $source['map']['__members'] . ' members,'
+            . $source['map']['email'] . ' email,'
+            . $source['map'][$source['list_name_field']]
+            . ' lname FROM ' . $source['params']['table'] . ' WHERE '
+            . $source['map']['__key'] . ' = ' . $db->quoteString($key);
+
+        return array($db, $sql);
     }
 
     /**

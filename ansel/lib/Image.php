@@ -2,7 +2,7 @@
 /**
  * Class to describe a single Ansel image.
  *
- * Copyright 2001-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2001-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -732,10 +732,12 @@ class Ansel_Image Implements Iterator
         }
 
         foreach ($exif_fields as $name => $value) {
-            $GLOBALS['injector']
-                ->getInstance('Ansel_Storage')
-                ->saveImageAttribute($this->id, $name, $value);
-            $this->_exif[$name] = Horde_Image_Exif::getHumanReadable($name, $value);
+            if (!empty($value)) {
+                $GLOBALS['injector']
+                    ->getInstance('Ansel_Storage')
+                    ->saveImageAttribute($this->id, $name, $value);
+                $this->_exif[$name] = Horde_Image_Exif::getHumanReadable($name, $value);
+            }
         }
 
         return $needUpdate;

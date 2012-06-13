@@ -14,7 +14,7 @@
 /**
  * A Kolab XML envelope for arbitrary XML.
  *
- * Copyright 2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2011-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you did not
  * receive this file, see
@@ -34,10 +34,7 @@ class Horde_Kolab_Format_Xml_Envelope extends Horde_Kolab_Format_Xml
      * @var Kolab
      */
     protected $_fields_specific = array(
-        'xml' => array(
-            'type'    => self::TYPE_XML,
-            'value'   => self::VALUE_MAYBE_MISSING,
-        ),
+        'xml' => 'Horde_Kolab_Format_Xml_Type_XmlAppend',
     );
 
     /**

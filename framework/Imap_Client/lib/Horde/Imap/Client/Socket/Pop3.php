@@ -50,7 +50,7 @@
  *
  * ---------------------------------------------------------------------------
  *
- * Copyright 2009-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2009-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -85,6 +85,10 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
 
     /**
      */
+    protected $_utilsClass = 'Horde_Imap_Client_Utils_Pop3';
+
+    /**
+     */
     public function __construct(array $params = array())
     {
         if (empty($params['port'])) {
@@ -102,6 +106,13 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
     {
         return parent::_initCache($current) &&
                $this->queryCapability('UIDL');
+    }
+
+    /**
+     */
+    public function getIdsOb($ids = null, $sequence = false)
+    {
+        return new Horde_Imap_Client_Ids_Pop3($ids, $sequence);
     }
 
     /**
@@ -156,7 +167,7 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
      */
     protected function _getNamespaces()
     {
-        $this->_exception('IMAP namespaces not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('IMAP namespaces not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
@@ -177,7 +188,7 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
             ($this->_params['secure'] == 'tls')) {
             // Switch over to a TLS connection.
             if (!$this->queryCapability('STLS')) {
-                $this->_exception('Could not open secure TLS connection to the POP3 server - server does not support TLS.');
+                $this->_exception(Horde_Imap_Client_Translation::t("Could not open secure connection to the POP3 server.") . ' ' . Horde_Imap_Client_Translation::t("Server does not support secure connections."), 'LOGIN_TLSFAILURE');
             }
 
             $this->_sendLine('STLS');
@@ -186,7 +197,7 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
 
             if (!$res) {
                 $this->logout();
-                $this->_exception('Could not open secure TLS connection to the POP3 server.');
+                $this->_exception(Horde_Imap_Client_Translation::t("Could not open secure connection to the POP3 server."), 'LOGIN_TLSFAILURE');
             }
 
             // Expire cached CAPABILITY information
@@ -222,7 +233,7 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
             }
         }
 
-        $this->_exception('POP3 server denied authentication.', $e->getCode() ? $e->getCode() : 'LOGIN_AUTHENTICATIONFAILED');
+        $this->_exception(Horde_Imap_Client_Translation::t("POP3 server denied authentication."), $e->getCode() ? $e->getCode() : 'LOGIN_AUTHENTICATIONFAILED');
     }
 
     /**
@@ -237,7 +248,7 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
         }
 
         if (!empty($this->_params['secure']) && !extension_loaded('openssl')) {
-            $this->_exception('Secure connections require the PHP openssl extension.');
+            new InvalidArgumentException('Secure connections require the PHP openssl extension.');
         }
 
         switch ($this->_params['secure']) {
@@ -257,7 +268,10 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
         if ($this->_stream === false) {
             $this->_stream = null;
             $this->_isSecure = false;
-            $this->_exception('Error connecting to POP3 server: [' . $error_number . '] ' . $error_string, 'SERVER_CONNECT');
+            $this->_exception(array(
+                Horde_Imap_Client_Translation::t("Error connecting to POP3 server."),
+                sprintf("[%u] %s.", $error_number, $error_string)
+            ), 'SERVER_CONNECT');
         }
 
         stream_set_timeout($this->_stream, $this->_params['timeout']);
@@ -304,7 +318,7 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
                 'debug' => '[DIGEST-MD5 Response]'
             ));
             if (stripos(base64_decode(substr($sresponse['line'], 2)), 'rspauth=') === false) {
-                $this->_exception('Unexpected response from server to Digest-MD5 response.');
+                $this->_exception(Horde_Imap_Client_Translation::t("Unexpected response from server when authenticating."), 'SERVER_CONNECT');
             }
 
             /* POP3 doesn't use protocol's third step. */
@@ -341,7 +355,7 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
             break;
 
         default:
-            $this->_exception('Unknown authentication method: ' . $method);
+            $this->_exception(sprintf(Horde_Imap_Client_Translation::t("Unknown authentication method: %s"), $method), 'SERVER_CONNECT');
         }
     }
 
@@ -363,7 +377,7 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
      */
     protected function _sendID($info)
     {
-        $this->_exception('IMAP ID command not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('IMAP ID command not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
@@ -381,58 +395,62 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
      */
     protected function _setLanguage($langs)
     {
-        $this->_exception('IMAP LANGUAGE extension not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('IMAP LANGUAGE extension not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
      */
     protected function _getLanguage($list)
     {
-        $this->_exception('IMAP LANGUAGE extension not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('IMAP LANGUAGE extension not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
      */
-    protected function _openMailbox($mailbox, $mode)
+    protected function _openMailbox(Horde_Imap_Client_Mailbox $mailbox, $mode)
     {
         if (strcasecmp($mailbox, 'INBOX') !== 0) {
-            $this->_exception('Mailboxes other than INBOX not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+            $this->_exception('Mailboxes other than INBOX not supported on POP3 servers.', 'NO_SUPPORT');
         }
     }
 
     /**
      */
-    protected function _createMailbox($mailbox, $opts)
+    protected function _createMailbox(Horde_Imap_Client_Mailbox $mailbox, $opts)
     {
-        $this->_exception('Creating mailboxes not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('Creating mailboxes not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
      */
-    protected function _deleteMailbox($mailbox)
+    protected function _deleteMailbox(Horde_Imap_Client_Mailbox $mailbox)
     {
-        $this->_exception('Deleting mailboxes not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('Deleting mailboxes not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
      */
-    protected function _renameMailbox($old, $new)
+    protected function _renameMailbox(Horde_Imap_Client_Mailbox $old,
+                                      Horde_Imap_Client_Mailbox $new)
     {
-        $this->_exception('Renaming mailboxes not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('Renaming mailboxes not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
      */
-    protected function _subscribeMailbox($mailbox, $subscribe)
+    protected function _subscribeMailbox(Horde_Imap_Client_Mailbox $mailbox,
+                                         $subscribe)
     {
-        $this->_exception('Mailboxes other than INBOX not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('Mailboxes other than INBOX not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
      */
     protected function _listMailboxes($pattern, $mode, $options)
     {
-        $tmp = array('mailbox' => 'INBOX');
+        $tmp = array(
+            'mailbox' => Horde_Imap_Client_Mailbox::get('INBOX')
+        );
 
         if (!empty($options['attributes'])) {
             $tmp['attributes'] = array();
@@ -448,7 +466,7 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
      * @param integer $flags   This driver only supports the options listed
      *                         under Horde_Imap_Client::STATUS_ALL.
      */
-    protected function _status($mailbox, $flags)
+    protected function _status(Horde_Imap_Client_Mailbox $mailbox, $flags)
     {
         $this->openMailbox($mailbox);
 
@@ -458,7 +476,7 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
             ($flags & Horde_Imap_Client::STATUS_PERMFLAGS) ||
             ($flags & Horde_Imap_Client::STATUS_HIGHESTMODSEQ) ||
             ($flags & Horde_Imap_Client::STATUS_UIDNOTSTICKY)) {
-            $this->_exception('Improper status request on POP3 server.', 'POP3_NOTSUPPORTED');
+            $this->_exception('Improper status request on POP3 server.', 'NO_SUPPORT');
         }
 
         $ret = array();
@@ -493,9 +511,10 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
 
     /**
      */
-    protected function _append($mailbox, $data, $options)
+    protected function _append(Horde_Imap_Client_Mailbox $mailbox, $data,
+                               $options)
     {
-        $this->_exception('Appending messages not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('Appending messages not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
@@ -540,7 +559,7 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
             ($sort &&
              ((count($options['sort']) > 1) ||
               ($sort != Horde_Imap_Client::SORT_SEQUENCE)))) {
-            $this->_exception('Server search not supported on POP3 server.', 'POP3_NOTSUPPORTED');
+            $this->_exception('Server search not supported on POP3 server.', 'NO_SUPPORT');
         }
 
         $status = $this->status($this->_selected, Horde_Imap_Client::STATUS_MESSAGES);
@@ -563,7 +582,7 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
                 break;
 
             case Horde_Imap_Client::SEARCH_RESULTS_MATCH:
-                $ret['match'] = new Horde_Imap_Client_Ids($res);
+                $ret['match'] = $this->getIdsOb($res);
                 break;
 
             case Horde_Imap_Client::SEARCH_RESULTS_MAX:
@@ -583,21 +602,21 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
      */
     protected function _setComparator($comparator)
     {
-        $this->_exception('Search comparators not supported on POP3 server.', 'POP3_NOTSUPPORTED');
+        $this->_exception('Search comparators not supported on POP3 server.', 'NO_SUPPORT');
     }
 
     /**
      */
     protected function _getComparator()
     {
-        $this->_exception('Search comparators not supported on POP3 server.', 'POP3_NOTSUPPORTED');
+        $this->_exception('Search comparators not supported on POP3 server.', 'NO_SUPPORT');
     }
 
     /**
      */
     protected function _thread($options)
     {
-        $this->_exception('Server threading not supported on POP3 server.', 'POP3_NOTSUPPORTED');
+        $this->_exception('Server threading not supported on POP3 server.', 'NO_SUPPORT');
     }
 
     /**
@@ -607,7 +626,7 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
         // These options are not supported by this driver.
         if (!empty($options['changedsince']) ||
             !empty($options['vanished'])) {
-            $this->_exception('Fetch options not supported on POP3 server.', 'POP3_NOTSUPPORTED');
+            $this->_exception('Fetch options not supported on POP3 server.', 'NO_SUPPORT');
         }
 
         // Grab sequence IDs - IDs will always be the message number for
@@ -654,27 +673,35 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
                 break;
 
             case Horde_Imap_Client::FETCH_BODYTEXT:
-                foreach ($seq_ids as $id) {
-                    try {
-                        $results[$lookup[$id]]->setBodyText($key, $this->_processString(Horde_Mime_Part::getRawPartText(stream_get_contents($this->_pop3Cache('msg', $id)), 'body', $key), $c_val));
-                    } catch (Horde_Mime_Exception $e) {}
+                // Ignore 'peek' option
+                foreach ($c_val as $key => $val) {
+                    foreach ($seq_ids as $id) {
+                        try {
+                            $results[$lookup[$id]]->setBodyText($key, $this->_processString(Horde_Mime_Part::getRawPartText(stream_get_contents($this->_pop3Cache('msg', $id)), 'body', $key), $val));
+                        } catch (Horde_Mime_Exception $e) {}
+                    }
                 }
                 break;
 
             case Horde_Imap_Client::FETCH_MIMEHEADER:
-                foreach ($seq_ids as $id) {
-                    try {
-                        $results[$lookup[$id]]->setMimeHeader($key, $this->_processString(Horde_Mime_Part::getRawPartText(stream_get_contents($this->_pop3Cache('msg', $id)), 'header', $key), $c_val));
-                    } catch (Horde_Mime_Exception $e) {}
+                // Ignore 'peek' option
+                foreach ($c_val as $key => $val) {
+                    foreach ($seq_ids as $id) {
+                        try {
+                            $results[$lookup[$id]]->setMimeHeader($key, $this->_processString(Horde_Mime_Part::getRawPartText(stream_get_contents($this->_pop3Cache('msg', $id)), 'header', $key), $val));
+                        } catch (Horde_Mime_Exception $e) {}
+                    }
                 }
                 break;
 
             case Horde_Imap_Client::FETCH_BODYPART:
-                // Ignore 'decode'
-                foreach ($seq_ids as $id) {
-                    try {
-                        $results[$lookup[$id]]->setBodyPart($key, $this->_processString(Horde_Mime_Part::getRawPartText(stream_get_contents($this->_pop3Cache('msg', $id)), 'body', $key), $c_val));
-                    } catch (Horde_Mime_Exception $e) {}
+                // Ignore 'decode', 'peek'
+                foreach ($c_val as $key => $val) {
+                    foreach ($seq_ids as $id) {
+                        try {
+                            $results[$lookup[$id]]->setBodyPart($key, $this->_processString(Horde_Mime_Part::getRawPartText(stream_get_contents($this->_pop3Cache('msg', $id)), 'body', $key), $val));
+                        } catch (Horde_Mime_Exception $e) {}
+                    }
                 }
                 break;
 
@@ -900,77 +927,80 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
             }
         }
 
-        return new Horde_Imap_Client_Ids();
+        return $this->getIdsOb();
     }
 
     /**
      */
-    protected function _copy($dest, $options)
+    protected function _copy(Horde_Imap_Client_Mailbox $dest, $options)
     {
-        $this->_exception('Copying messages not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('Copying messages not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
      */
-    protected function _setQuota($root, $options)
+    protected function _setQuota(Horde_Imap_Client_Mailbox $root, $options)
     {
-        $this->_exception('IMAP quotas not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('IMAP quotas not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
      */
-    protected function _getQuota($root)
+    protected function _getQuota(Horde_Imap_Client_Mailbox $root)
     {
-        $this->_exception('IMAP quotas not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('IMAP quotas not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
      */
-    protected function _getQuotaRoot($mailbox)
+    protected function _getQuotaRoot(Horde_Imap_Client_Mailbox $mailbox)
     {
-        $this->_exception('IMAP quotas not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('IMAP quotas not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
      */
-    protected function _setACL($mailbox, $identifier, $options)
+    protected function _setACL(Horde_Imap_Client_Mailbox $mailbox, $identifier,
+                               $options)
     {
-        $this->_exception('IMAP ACLs not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('IMAP ACLs not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
      */
-    protected function _getACL($mailbox)
+    protected function _getACL(Horde_Imap_Client_Mailbox $mailbox)
     {
-        $this->_exception('IMAP ACLs not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('IMAP ACLs not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
      */
-    protected function _listACLRights($mailbox, $identifier)
+    protected function _listACLRights(Horde_Imap_Client_Mailbox $mailbox,
+                                      $identifier)
     {
-        $this->_exception('IMAP ACLs not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('IMAP ACLs not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
      */
-    protected function _getMyACLRights($mailbox)
+    protected function _getMyACLRights(Horde_Imap_Client_Mailbox $mailbox)
     {
-        $this->_exception('IMAP ACLs not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('IMAP ACLs not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
      */
-     protected function _getMetadata($mailbox, $entries, $options)
-     {
-        $this->_exception('IMAP metadata not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
-     }
+    protected function _getMetadata(Horde_Imap_Client_Mailbox $mailbox,
+                                    $entries, $options)
+    {
+        $this->_exception('IMAP metadata not supported on POP3 servers.', 'NO_SUPPORT');
+    }
 
     /**
      */
-    protected function _setMetadata($mailbox, $data)
+    protected function _setMetadata(Horde_Imap_Client_Mailbox $mailbox, $data)
     {
-        $this->_exception('IMAP metadata not supported on POP3 servers.', 'POP3_NOTSUPPORTED');
+        $this->_exception('IMAP metadata not supported on POP3 servers.', 'NO_SUPPORT');
     }
 
     /**
@@ -995,7 +1025,7 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
      */
     protected function _sendLine($query, $options = array())
     {
-        $this->_writeDebug((empty($options['debug']) ? $query : $options['debug']) . "\n", 'client');
+        $this->writeDebug((empty($options['debug']) ? $query : $options['debug']) . "\n", Horde_Imap_Client::DEBUG_CLIENT);
 
         fwrite($this->_stream, $query . "\r\n");
 
@@ -1017,7 +1047,7 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
 
         if (feof($this->_stream)) {
             $this->logout();
-            $this->_exception('POP3 Server closed the connection unexpectedly.', 'DISCONNECT');
+            $this->_exception(Horde_Imap_Client_Translation::t("POP3 Server closed the connection unexpectedly."), 'DISCONNECT');
         }
 
         $read = rtrim(fgets($this->_stream));
@@ -1025,7 +1055,7 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
             return;
         }
 
-        $this->_writeDebug($read . "\n", 'server');
+        $this->writeDebug($read . "\n", Horde_Imap_Client::DEBUG_SERVER);
 
         $orig_read = $read;
         $read = explode(' ', $read, 2);
@@ -1073,7 +1103,10 @@ class Horde_Imap_Client_Socket_Pop3 extends Horde_Imap_Client_Base
                 $errtext = '[No error message provided by server]';
             }
 
-            $this->_exception('POP3 Error: ' . $errtext, $errcode);
+            $this->_exception(array(
+                Horde_Imap_Client_Translation::t("POP3 error reported by server."),
+                $errtext
+            ), $errcode);
 
         case '.':
             $ob['response'] = 'END';

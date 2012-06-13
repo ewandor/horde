@@ -7,9 +7,10 @@
   want to use a single Horde installation for different virtual hosts, you can
   create separate configuration files for each virtual host,
   e.g. &lt;code&gt;conf-www.example.com.php&lt;/code&gt; or
-  &lt;code&gt;prefs-mail.example.com.php&lt;/code&gt;. The global
-  configuration files are always loaded first, and virtual host specific files
-  are not required.">false</configboolean>
+  &lt;code&gt;prefs-mail.example.com.php&lt;/code&gt;. The global configuration
+  files are always loaded first, and virtual host specific files are not
+  required. If running command line scripts, you can specify the host name with
+  the environment variable SERVER_NAME.">false</configboolean>
   <configheader>PHP Settings</configheader>
   <configphp name="debug_level" desc="The value to set
   error_reporting() to.
@@ -167,6 +168,8 @@
    validate the browser string of the client (as seen by the web server) in
    the session? Doing so will help increase security by making it harder for
    an attacker to hijack the session.">true</configboolean>
+   <configboolean name="resetpassword" desc="Allow users to reset passwords and
+   provide a link on the login screen?">true</configboolean>
    <configstring name="alternate_login" desc="If this is not false, it is
    assumed to be the URL of an alternate login screen which will be used in
    place of horde's default login screen. The URL will have an &quot;app&quot;
@@ -706,15 +709,6 @@
   </configsection>
  </configtab>
 
- <configtab name="themes" desc="Themes">
-  <configheader>Theme Settings</configheader>
-  <configboolean name="nobase64_img" required="false" desc="Always send full
-  URLs for image data? By default, Horde will send image data within the page
-  itself if the browser supports it. This eliminates the need for additional
-  server connections to grab the image data, at the expense of slightly
-  larger page sizes.">false</configboolean>
- </configtab>
-
  <configtab name="signup" desc="Sign Up">
   <configsection name="signup">
    <configheader>Sign Up Settings</configheader>
@@ -949,12 +943,12 @@
     </case>
    </configswitch>
    <configheader>Group Caching</configheader>
-   <configdescription>Enabling group caching improves performance because the
+   <configdescription>GROUP CACHING HAS NOT BEEN IMPLEMENTED FOR HORDE 4 YET. Enabling group caching improves performance because the
    group backend will only be queried once per session. But it also increases
    the users' session sizes, and group changes won't take effect before the
    users log in the next time.</configdescription>
-   <configboolean name="cache" required="false" desc="Enable group
-   caching?">false</configboolean>
+   <!--<configboolean name="cache" required="false" desc="Enable group
+   caching?">false</configboolean>-->
   </configsection>
  </configtab>
 
@@ -1285,9 +1279,14 @@
       <configstring name="sendmail_args" required="false" desc="Any extra
       parameters to pass to the sendmail or sendmail wrapper
       binary">-oi</configstring>
+      <configstring name="sendmail_eol" required="false" desc="The end-of-line
+      (EOL) sequence to use when piping the message to the sendmail binary.
+      It is not possible to reliably auto-configure sendmail, so if your
+      messages are being sent incorrectly, you should adjust this value (if
+      blank, the system default is used)."></configstring>
      </configsection>
     </case>
-    <case name="smtp" desc="Use a SMTP server">
+    <case name="smtp" desc="Use a SMTP server (HIGHLY RECOMMENDED)">
      <configsection name="params">
       <configstring name="host" required="false" desc="The server to connect
       to [localhost]"/>
@@ -1454,13 +1453,22 @@
    <configheader>OpenSSL Settings</configheader>
    <configstring name="cafile" required="false" desc="The location of the root
    certificates bundle, e.g. /etc/ssl/certs. See
-   http://www.php.net/manual/en/ref.openssl.php#openssl.cert.verification for
+   http://www.php.net/manual/en/openssl.cert.verification.php for
    details."/>
    <configstring name="path" required="false" desc="The location of the OpenSSL
    binary on your system, e.g. /usr/bin/openssl. This program is REQUIRED to
    import personal S/MIME certificate information, as there is no native PHP
    function that can read pkcs12 files."/>
   </configsection>
+ </configtab>
+
+ <configtab name="themes" desc="Themes">
+  <configheader>Theme Settings</configheader>
+  <configboolean name="nobase64_img" required="false" desc="Always send full
+  URLs for image data? By default, Horde will send image data within the page
+  itself if the browser supports it. This eliminates the need for additional
+  server connections to grab the image data, at the expense of slightly
+  larger page sizes.">false</configboolean>
  </configtab>
 
  <configtab name="image" desc="Image Manipulation">
@@ -1621,14 +1629,6 @@
     </configenum>
    </configsection>
   </configsection>
-
-  <configsection name="logo">
-   <configstring name="image" required="false" desc="The URL of an image for
-   the top of the Horde menu. The image should be no larger than 140 pixels
-   wide by 40 pixels high to prevent the frame from scrolling."/>
-   <configstring name="link" required="false" desc="If a logo is displayed in
-   the Horde menu, what URL (if any) should it link to?"/>
-  </configsection>
  </configtab>
 
  <configtab name="block" desc="Portal Blocks">
@@ -1640,21 +1640,6 @@
      <configspecial application="horde" name="blocks" />
     </values>
    </configmultienum>
-  </configsection>
-  <configheader>weather.com Configuration</configheader>
-  <configsection name="weatherdotcom">
-   <configdescription>
-    Use of the weather.com block requires free registration for the XML
-    feed at http://www.weather.com/services/xmloap.html.
-    After registration, an email will be returned with the Partner ID and
-    license key.&lt;br /&gt;
-    NOTE: weather.com guidelines require registration and use of the returned
-    values, but the application appears to function with any string values.
-   </configdescription>
-   <configstring name="partner_id" required="false" desc="The partner I.D.
-   from weather.com"/>
-   <configstring name="license_key" required="false" desc="The license key
-   from weather.com"/>
   </configsection>
 
   <configheader>Fortune Configuration</configheader>
@@ -1778,6 +1763,46 @@
     <case name="true" desc="Enabled">
       <configstring name="key" required="false" desc="OAuth Consumer Key:"></configstring>
       <configstring name="secret" required="false" desc="OAuth Consumer Secret:"></configstring>
+    </case>
+   </configswitch>
+  </configsection>
+  <configheader>Url Shortening</configheader>
+   <configenum name="urlshortener" desc="Should Horde use a URL shortening
+   service? This will be used when submitting URLs to social network providers.">
+    <values>
+      <value desc="None">false</value>
+      <value desc="TinyUrl">TinyUrl</value>
+    </values>
+   </configenum>
+  <configsection name="weather">
+   <configheader>Weather Services</configheader>
+   <configdescription>If you want to provide weather information to your users
+   you must select a provider and provide your API keys.</configdescription>
+   <configswitch name="provider">false
+    <case name="false" desc="None" />
+    <case name="WeatherUnderground" desc="Weather Underground - Recommended, but relatively low daily limits for free accounts.">
+      <configsection name="params">
+       <configstring name="key" desc="API Key. For information on registration and obtaining an API
+       key for this driver, see http://www.wunderground.com/weather/api/.">
+       </configstring>
+       <configinteger name="lifetime" desc="Lifetime of the cached weather information, in seconds.">21600
+       </configinteger>
+      </configsection>
+    </case>
+    <case name="Google" desc="Google Weather API - Unofficial API. Free, no registration. VERY basic forecast data.">
+      <configsection name="params">
+       <configinteger name="lifetime" desc="Lifetime of the cached weather information, in seconds.">21600
+       </configinteger>
+      </configsection>
+    </case>
+    <case name="Wwo" desc="World Weather Online API. Free, requires registration. Slighty more detailed than Google.">
+      <configsection name="params">
+        <configstring name="key" desc="API Key. For information on registration
+        and obtaining an API key for this driver, see
+        http://worldweatheronline.com"></configstring>
+       <configinteger name="lifetime" desc="Lifetime of the cached weather information, in seconds.">21600
+       </configinteger>
+      </configsection>
     </case>
    </configswitch>
   </configsection>
@@ -1952,7 +1977,10 @@
      <configsection name="logging">
       <configswitch name="type" desc="For debugging, it may be useful to send
       activesync-related log messages to a seperate log. If you want to do this,
-      set this to Custom and enter the path to the log file to use.">
+      set this to Custom and enter the path to the log file to use. Horde will
+      attempt to create device specific log files in the same directory as the
+      filepath you provide here. If it is unable to do so, all log entries will
+      be sent to the filename you provide.">
         <case name="horde" desc="Horde" />
         <case name="custom" desc="Custom">
          <configstring name="path" desc="Path to logfile" />
@@ -1969,18 +1997,19 @@
       correctly. If you plan on synching Android devices, you should make sure
       that this range is wide enough to allow Android's default of 470 seconds.
       </configdescription>
-      <configswitch name="deviceping" desc="Allow devices to manage the heartbeat or
-      force Horde to use a specific heartbeat for every device?">true
+      <configswitch name="deviceping" desc="Allow devices to manage the
+      heartbeat or force Horde to use a specific heartbeat for every
+      device?">true
        <case name="true" desc="Device managed heartbeat">
-        <configinteger name="heartbeatmin" desc="The minimum number of seconds to
-        wait before sending results. This value must be greater then zero.">60
-        </configinteger>
-        <configinteger name="heartbeatmax" desc="The maximum number of seconds to
-        wait before sending results. Note this value must not be greater then 3540
-        (59 minutes).">2700</configinteger>
+        <configinteger name="heartbeatmin" desc="The minimum number of seconds
+        to wait before sending results. This value must be greater then zero.">
+        60</configinteger>
+        <configinteger name="heartbeatmax" desc="The maximum number of seconds
+        to wait before sending results. Note this value must not be greater then
+        3540 (59 minutes).">2700</configinteger>
         <configinteger name="heartbeatdefault" desc="If the client does not
-        request a heartbeat interval, this interval will be used by default.">480
-        </configinteger>
+        request a heartbeat interval, this interval will be used by default.">
+        480</configinteger>
        </case>
        <case name="false" desc="Forced heartbeat">
         <configinteger name="forcedheartbeat" desc="The number of seconds to
@@ -2010,15 +2039,16 @@
          <case name="false" desc="No" />
          <case name="true" desc="Yes">
           <configinteger name="wipethreshold" desc="How many unlock attempts
-          before device should get wiped?">10</configinteger>
-          <configinteger name="codewordfrequency" desc="How many unlock
-          attempts before validating that an actual person is using the device
-          is able to read and write. This should typically be half of the
-          wipethreshold setting above.">5</configinteger>
+          before device should get wiped? Set to 0 to disable this policy.">10
+          </configinteger>
+          <configinteger name="codewordfrequency" desc="How many unlock attempts
+          before validating that an actual person is using the device is able to
+          read and write. This should typically be half of thewipethreshold
+          setting above. Set to 0 to disable this policy.">5</configinteger>
           <configinteger name="minimumlength" desc="Minimum PIN
           size">5</configinteger>
           <configenum name="complexity" desc="PIN/Password complexity. Some
-          devices may be able to ONLY support numeric PINS.">
+          devices may be able to ONLY support numeric PINs.">
            <values>
             <value desc="Require alphanumeric">0</value>
             <value desc="Allow only numeric">1</value>
@@ -2036,15 +2066,16 @@
          <case name="false" desc="No" />
          <case name="true" desc="Yes">
           <configinteger name="wipethreshold" desc="How many unlock attempts
-          before device should get wiped?">10</configinteger>
-          <configinteger name="codewordfrequency" desc="How many unlock
-          attempts before validating that an actual person is using the device
-          is able to read and write. This should typically be half of the
-          wipethreshold setting above.">5</configinteger>
+          before device should get wiped? Set to 0 to disable this policy.">10
+          </configinteger>
+          <configinteger name="codewordfrequency" desc="How many unlock attempts
+          before validating that an actual person is using the device is able to
+          read and write. This should typically be half of thewipethreshold
+          setting above. Set to 0 to disable this policy.">5</configinteger>
           <configinteger name="minimumlength" desc="Minimum PIN
           size">5</configinteger>
           <configenum name="complexity" desc="PIN/Password complexity. Some
-          devices may be able to ONLY support numeric PINS.">
+          devices may be able to ONLY support numeric PINs.">
            <values>
             <value desc="Require alphanumeric">0</value>
             <value desc="Allow only numeric">1</value>

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2003-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2003-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (GPL). If you
  * did not receive this file, see http://www.horde.org/licenses/gpl.
@@ -39,14 +39,17 @@ $return_url = Ansel::getUrlFor(
     true);
 $view = new Ansel_View_Upload(
     array(
+        'forceNoScript' => $prefs->getValue('force_old_uploader', false),
         'browse_button' => 'pickfiles',
-        'target' => Horde::selfUrl(),
+        'target' => Horde::selfUrl()->setRaw(true),
         'drop_target' => 'filelist',
         'upload_button' => 'uploadfiles',
         'gallery' => $gallery,
-        'return_target' => $return_url->toString()));
-$view->run();
-$nojs = $view->handleNoJs();
+        'return_target' => $return_url->toString(true, true)));
+if (!$prefs->getValue('force_old_uploader', 'false')) {
+    $view->run();
+}
+$nojs = $view->handleLegacy();
 
 $title = _("Add Photo");
 require $registry->get('templates', 'horde') . '/common-header.inc';

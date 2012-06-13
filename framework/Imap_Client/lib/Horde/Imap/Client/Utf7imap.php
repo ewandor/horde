@@ -12,7 +12,7 @@
  *    SVN revision 1757
  *  The RoundCube project is released under the GPL (version 2)
  *
- * Copyright 2008-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2008-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -63,14 +63,17 @@ class Horde_Imap_Client_Utf7imap
     /**
      * Convert a string from UTF7-IMAP to UTF-8.
      *
-     * @param mixed  The UTF7-IMAP string (or an object with a __toString()
-     *               method).
+     * @param string $str  The UTF7-IMAP string.
      *
      * @return string  The converted UTF-8 string.
      * @throws Horde_Imap_Client_Exception
      */
     public static function Utf7ImapToUtf8($str)
     {
+        if ($str instanceof Horde_Imap_Client_Mailbox) {
+            return $str->utf8;
+        }
+
         $str = strval($str);
 
         /* Try mbstring, if available, which should be faster. Don't use the
@@ -111,7 +114,7 @@ class Horde_Imap_Client_Utf7imap
                         if ($ch < 0x80) {
                             /* Printable US-ASCII */
                             if ((0x20 <= $ch) && ($ch < 0x7f)) {
-                                throw new Horde_Imap_Client_Exception('Error converting string.', Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
+                                throw new Horde_Imap_Client_Exception(Horde_Imap_Client_Translation::t("Error converting UTF7-IMAP string."), Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
                             }
                             $p .= chr($ch);
                         } else if ($ch < 0x800) {
@@ -128,25 +131,19 @@ class Horde_Imap_Client_Utf7imap
                     }
                 }
 
-                /* Non-zero or too many extra bits. */
-                if ($ch || ($k < 6)) {
-                    throw new Horde_Imap_Client_Exception('Error converting string.', Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
-                }
-
-                /* Base64 not properly terminated. */
-                if (!$u7len || $u7 != '-') {
-                    throw new Horde_Imap_Client_Exception('Error converting string.', Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
-                }
-
-                /* Adjacent Base64 sections. */
-                if (($u7len > 2) &&
-                    ($str[$i + 1] == '&') &&
-                    ($str[$i + 2] != '-')) {
-                    throw new Horde_Imap_Client_Exception('Error converting string.', Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
+                /* Non-zero or too many extra bits -OR-
+                 * Base64 not properly terminated -OR-
+                 * Adjacent Base64 sections. */
+                if (($ch || ($k < 6)) ||
+                    (!$u7len || $u7 != '-') ||
+                    (($u7len > 2) &&
+                     ($str[$i + 1] == '&') &&
+                     ($str[$i + 2] != '-'))) {
+                    throw new Horde_Imap_Client_Exception(Horde_Imap_Client_Translation::t("Error converting UTF7-IMAP string."), Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
                 }
             } elseif ((ord($u7) < 0x20) || (ord($u7) >= 0x7f)) {
                 /* Not printable US-ASCII */
-                throw new Horde_Imap_Client_Exception('Error converting string.', Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
+                throw new Horde_Imap_Client_Exception(Horde_Imap_Client_Translation::t("Error converting UTF7-IMAP string."), Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
             } else {
                 $p .= $u7;
             }
@@ -158,20 +155,27 @@ class Horde_Imap_Client_Utf7imap
     /**
      * Convert a string from UTF-8 to UTF7-IMAP.
      *
-     * @param mixed  The UTF-8 string (or an object with a __toString()
-     *               method).
+     * @param string $str     The UTF-8 string.
+     * @param boolean $force  Assume $str is UTF-8 (no-autodetection)? If
+     *                        false, attempts to auto-detect if string is
+     *                        already in UTF7-IMAP. (Since 1.2.0)
      *
      * @return string  The converted UTF7-IMAP string.
      * @throws Horde_Imap_Client_Exception
      */
-    public static function Utf8ToUtf7Imap($str)
+    public static function Utf8ToUtf7Imap($str, $force = false)
     {
+        if ($str instanceof Horde_Imap_Client_Mailbox) {
+            return $str->utf7imap;
+        }
+
         $str = strval($str);
 
         /* No need to do conversion if all chars are in US-ASCII range or if
          * no ampersand is present. But will assume that an already encoded
          * ampersand means string is in UTF7-IMAP already. */
-        if (!preg_match('/[\x80-\xff]|&$|&(?![,+A-Za-z0-9]*-)/', $str)) {
+        if (!$force &&
+            !preg_match('/[\x80-\xff]|&$|&(?![,+A-Za-z0-9]*-)/', $str)) {
             return $str;
         }
 
@@ -198,7 +202,7 @@ class Horde_Imap_Client_Utf7imap
                 $ch = $c;
                 $n = 0;
             } elseif ($c < 0xc2) {
-                throw new Horde_Imap_Client_Exception('Error converting string.', Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
+                throw new Horde_Imap_Client_Exception(Horde_Imap_Client_Translation::t("Error converting UTF7-IMAP string."), Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
             } elseif ($c < 0xe0) {
                 $ch = $c & 0x1f;
                 $n = 1;
@@ -215,11 +219,11 @@ class Horde_Imap_Client_Utf7imap
                 $ch = $c & 0x01;
                 $n = 5;
             } else {
-                throw new Horde_Imap_Client_Exception('Error converting string.', Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
+                throw new Horde_Imap_Client_Exception(Horde_Imap_Client_Translation::t("Error converting UTF7-IMAP string."), Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
             }
 
             if ($n > --$u8len) {
-                throw new Horde_Imap_Client_Exception('Error converting string.', Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
+                throw new Horde_Imap_Client_Exception(Horde_Imap_Client_Translation::t("Error converting UTF7-IMAP string."), Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
             }
 
             ++$i;
@@ -227,13 +231,13 @@ class Horde_Imap_Client_Utf7imap
             for ($j = 0; $j < $n; ++$j) {
                 $o = ord($str[$i + $j]);
                 if (($o & 0xc0) != 0x80) {
-                    throw new Horde_Imap_Client_Exception('Error converting string.', Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
+                    throw new Horde_Imap_Client_Exception(Horde_Imap_Client_Translation::t("Error converting UTF7-IMAP string."), Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
                 }
                 $ch = ($ch << 6) | ($o & 0x3f);
             }
 
             if (($n > 1) && !($ch >> ($n * 5 + 1))) {
-                throw new Horde_Imap_Client_Exception('Error converting string.', Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
+                throw new Horde_Imap_Client_Exception(Horde_Imap_Client_Translation::t("Error converting UTF7-IMAP string."), Horde_Imap_Client_Exception::UTF7IMAP_CONVERSION);
             }
 
             $i += $n;

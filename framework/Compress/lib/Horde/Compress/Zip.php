@@ -12,7 +12,7 @@
  * The ZIP compression date code is partially based on code from
  *   Peter Listiak <mlady@users.sourceforge.net>
  *
- * Copyright 2000-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2000-2012 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -202,6 +202,11 @@ class Horde_Compress_Zip extends Horde_Compress_Base
                 throw new Horde_Compress_Exception(Horde_Compress_Translation::t("Invalid ZIP data"));
             }
             $info = unpack('vMethod/VTime/VCRC32/VCompressed/VUncompressed/vLength', substr($data, $fhStart + 10, 20));
+
+            if (!isset($this->_methods[$info['Method']])) {
+                throw new Horde_Compress_Exception(Horde_Compress_Translation::t("Invalid ZIP data"));
+            }
+
             $name = substr($data, $fhStart + 46, $info['Length']);
 
             $entries[$name] = array(
@@ -250,7 +255,9 @@ class Horde_Compress_Zip extends Horde_Compress_Base
             }
             $info = unpack('vMethod/VTime/VCRC32/VCompressed/VUncompressed/vLength/vExtraLength', substr($data, $fhStart + 8, 25));
             $name = substr($data, $fhStart + 30, $info['Length']);
-            $entries[$name]['_dataStart'] = $fhStart + 30 + $info['Length'] + $info['ExtraLength'];
+            if (isset($entries[$name])) {
+                $entries[$name]['_dataStart'] = $fhStart + 30 + $info['Length'] + $info['ExtraLength'];
+            }
         } while ($data_len > $fhStart + 30 + $info['Length'] &&
                  ($fhStart = strpos($data, self::FILE_HEADER, $fhStart + 30 + $info['Length'])) !== false);
 

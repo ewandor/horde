@@ -1,7 +1,73 @@
+----------
+v2.0.2-git
+----------
+
+[mjr] Fix carousel when viewing upload screen in an iFrame (Bug #10889).
+[mjr] Fix returning to gallery view after uploading images when viewing Ansel
+      in an iFrame (Bug #11209).
+[mjr] Fix moving a subgallery to a top level gallery (Bug #11134).
+[jan] Fix redirection after setting gallery password (thpo+horde@dotrc.de, Bug
+      #11195).
+
+
+------
+v2.0.1
+------
+
+[jan] Fix saving portal blocks.
+[mjr] Fix issue with carousel display on legacy uploader.
+[mjr] Fix issue where gallery still retained image count after it was empties
+      of all images when using gallery cache.
+[mjr] Fix issue with map not showing when user does not have Horde_Perms::EDIT
+      on the gallery (Bug #10762).
+
+
+----
+v2.0
+----
+
+[mjr] Add pref to allow explicitly turning off the new ajax uploader.
+[mjr] Fix invalid image type errors when uploading in older versions of
+      mozilla.
+[mjr] Fix issue with deleting galleries in date mode with key images (Bug
+      #10671).
+
 --------
-v2.0-git
+v2.0-RC2
 --------
 
+[jan] Fix page output of popup for updating dates of multiple images (Bug
+      #10676).
+[jan] Fix initialization of editor for creating ecards (Bug #10675).
+[mjr] Fix issue causing uploads to fail in certain cases on IE.
+[mjr] Display localized date strings when grouping galleries by date (Bug
+      #10669).
+[mjr] Improve gallery property editing when jpg image format is configured.
+[jan] Add Slovak translation (Martin Matuška <martin@matuska.org>).
+[mjr] Allow filtering listTagInfo results by user.
+[mjr] Fix issue with style migration when upgrading from Ansel 1.x.
+
+
+--------
+v2.0-RC1
+--------
+
+[mjr] Fix migrations to not rely on Ansel being available.
+[mjr] Fix hook calls (Bug #10659).
+[mjr] Add script to convert from sql to sqlng shares after migrations have
+      already run.
+[mjr] Add migration to ensure style hashes are computed for migrated galleries.
+[mjr] Fix uploading large files (Bug #10641).
+[mjr] Fix thumbnail generation on bulk caption setting page (Bug #10642).
+[mjr] Fix GROUP BY fields when searching for similar faces (Bug #10635).
+[jan] Fix link to report faces (Bug #10636).
+
+
+-----------
+v2.0-ALPHA1
+-----------
+
+[mjr] Support for sending twitter notifications after uploading images.
 [mjr] Refactor Geotagging features to use HordeMap.
 [jan] Add Latvian translation (Jānis Eisaks <jancs@dv.lv>).
 [jan] Provide default configuration files instead of .dist versions.

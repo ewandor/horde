@@ -1,7 +1,8 @@
 --------
-v2.0-cvs
+v2.0-git
 --------
 
+[jan] Fix listing per-client cost objects in search form.
 [jan] Add Latvian translation (Jānis Eisaks <jancs@dv.lv>).
 [mjr] Allow pausing and restarting timers.
 [mjr] Add ajax view.

@@ -22,19 +22,19 @@
   <email>chuck@horde.org</email>
   <active>yes</active>
  </lead>
- <date>2011-09-30</date>
- <time>12:44:55</time>
+ <date>2012-04-11</date>
+ <time>12:41:35</time>
  <version>
-  <release>2.0.0RC1</release>
-  <api>2.0.0RC1</api>
+  <release>2.0.3</release>
+  <api>2.0.0</api>
  </version>
  <stability>
-  <release>alpha</release>
-  <api>alpha</api>
+  <release>stable</release>
+  <api>stable</api>
  </stability>
  <license uri="http://www.horde.org/licenses/gpl">GPL-2.0</license>
  <notes>
-* [jan] Don&apos;t require login for login-less VFS backends.
+* 
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
@@ -42,7 +42,6 @@
     <file name="backends.php" role="horde" />
     <file name="conf.xml" role="horde" />
     <file name="menu.php.dist" role="horde" />
-    <file name="mime_drivers.php" role="horde" />
     <file name="prefs.php" role="horde" />
    </dir> <!-- /config -->
    <dir name="docs">
@@ -50,8 +49,12 @@
     <file name="CREDITS" role="doc" />
     <file name="INSTALL" role="doc" />
     <file name="RELEASE_NOTES" role="doc" />
+    <file name="UPGRADING" role="doc" />
    </dir> <!-- /docs -->
    <dir name="js">
+    <file name="clipboard.js" role="horde" />
+    <file name="edit.js" role="horde" />
+    <file name="login.js" role="horde" />
     <file name="manager.js" role="horde" />
     <file name="selectlist.js" role="horde" />
    </dir> <!-- /js -->
@@ -68,11 +71,6 @@
       <file name="Upgrade.php" role="horde" />
      </dir> <!-- /lib/LoginTasks/SystemTask -->
     </dir> <!-- /lib/LoginTasks -->
-    <dir name="Mime">
-     <dir name="Viewer">
-      <file name="Images.php" role="horde" />
-     </dir> <!-- /lib/Mime/Viewer -->
-    </dir> <!-- /lib/Mime -->
     <file name="Api.php" role="horde" />
     <file name="Application.php" role="horde" />
     <file name="Auth.php" role="horde" />
@@ -296,6 +294,8 @@
       <file name="clipboard.png" role="horde" />
       <file name="copy.png" role="horde" />
       <file name="cut.png" role="horde" />
+      <file name="download.png" role="horde" />
+      <file name="edit.png" role="horde" />
       <file name="favicon.ico" role="horde" />
       <file name="folder.png" role="horde" />
       <file name="folder_create.png" role="horde" />
@@ -303,6 +303,7 @@
       <file name="folder_home.png" role="horde" />
       <file name="folder_symlink.png" role="horde" />
       <file name="gollem.png" role="horde" />
+      <file name="reload.png" role="horde" />
       <file name="za.png" role="horde" />
      </dir> <!-- /themes/default/graphics -->
      <file name="screen.css" role="horde" />
@@ -315,13 +316,18 @@
       <file name="clipboard.png" role="horde" />
       <file name="copy.png" role="horde" />
       <file name="cut.png" role="horde" />
+      <file name="download.png" role="horde" />
+      <file name="edit.png" role="horde" />
+      <file name="favicon.ico" role="horde" />
       <file name="folder.png" role="horde" />
       <file name="folder_create.png" role="horde" />
       <file name="folder_goto.png" role="horde" />
       <file name="folder_home.png" role="horde" />
       <file name="folder_symlink.png" role="horde" />
       <file name="gollem.png" role="horde" />
+      <file name="reload.png" role="horde" />
      </dir> <!-- /themes/silver/graphics -->
+     <file name="screen.css" role="horde" />
     </dir> <!-- /themes/silver -->
    </dir> <!-- /themes -->
    <file name="clipboard.php" role="horde" />
@@ -493,12 +499,15 @@
    <install as="gollem/config/backends.php" name="config/backends.php" />
    <install as="gollem/config/conf.xml" name="config/conf.xml" />
    <install as="gollem/config/menu.php.dist" name="config/menu.php.dist" />
-   <install as="gollem/config/mime_drivers.php" name="config/mime_drivers.php" />
    <install as="gollem/config/prefs.php" name="config/prefs.php" />
    <install as="CHANGES" name="docs/CHANGES" />
    <install as="CREDITS" name="docs/CREDITS" />
    <install as="INSTALL" name="docs/INSTALL" />
    <install as="RELEASE_NOTES" name="docs/RELEASE_NOTES" />
+   <install as="UPGRADING" name="docs/UPGRADING" />
+   <install as="gollem/js/clipboard.js" name="js/clipboard.js" />
+   <install as="gollem/js/edit.js" name="js/edit.js" />
+   <install as="gollem/js/login.js" name="js/login.js" />
    <install as="gollem/js/manager.js" name="js/manager.js" />
    <install as="gollem/js/selectlist.js" name="js/selectlist.js" />
    <install as="gollem/lib/Api.php" name="lib/Api.php" />
@@ -511,7 +520,6 @@
    <install as="gollem/lib/Factory/Vfs.php" name="lib/Factory/Vfs.php" />
    <install as="gollem/lib/Factory/VfsDefault.php" name="lib/Factory/VfsDefault.php" />
    <install as="gollem/lib/LoginTasks/SystemTask/Upgrade.php" name="lib/LoginTasks/SystemTask/Upgrade.php" />
-   <install as="gollem/lib/Mime/Viewer/Images.php" name="lib/Mime/Viewer/Images.php" />
    <install as="gollem/locale/.htaccess" name="locale/.htaccess" />
    <install as="gollem/locale/gollem.pot" name="locale/gollem.pot" />
    <install as="gollem/locale/bg/LC_MESSAGES/gollem.mo" name="locale/bg/LC_MESSAGES/gollem.mo" />
@@ -594,6 +602,8 @@
    <install as="gollem/themes/default/graphics/clipboard.png" name="themes/default/graphics/clipboard.png" />
    <install as="gollem/themes/default/graphics/copy.png" name="themes/default/graphics/copy.png" />
    <install as="gollem/themes/default/graphics/cut.png" name="themes/default/graphics/cut.png" />
+   <install as="gollem/themes/default/graphics/download.png" name="themes/default/graphics/download.png" />
+   <install as="gollem/themes/default/graphics/edit.png" name="themes/default/graphics/edit.png" />
    <install as="gollem/themes/default/graphics/favicon.ico" name="themes/default/graphics/favicon.ico" />
    <install as="gollem/themes/default/graphics/folder.png" name="themes/default/graphics/folder.png" />
    <install as="gollem/themes/default/graphics/folder_create.png" name="themes/default/graphics/folder_create.png" />
@@ -601,17 +611,23 @@
    <install as="gollem/themes/default/graphics/folder_home.png" name="themes/default/graphics/folder_home.png" />
    <install as="gollem/themes/default/graphics/folder_symlink.png" name="themes/default/graphics/folder_symlink.png" />
    <install as="gollem/themes/default/graphics/gollem.png" name="themes/default/graphics/gollem.png" />
+   <install as="gollem/themes/default/graphics/reload.png" name="themes/default/graphics/reload.png" />
    <install as="gollem/themes/default/graphics/za.png" name="themes/default/graphics/za.png" />
    <install as="gollem/themes/purple/screen.css" name="themes/purple/screen.css" />
+   <install as="gollem/themes/silver/screen.css" name="themes/silver/screen.css" />
    <install as="gollem/themes/silver/graphics/clipboard.png" name="themes/silver/graphics/clipboard.png" />
    <install as="gollem/themes/silver/graphics/copy.png" name="themes/silver/graphics/copy.png" />
    <install as="gollem/themes/silver/graphics/cut.png" name="themes/silver/graphics/cut.png" />
+   <install as="gollem/themes/silver/graphics/download.png" name="themes/silver/graphics/download.png" />
+   <install as="gollem/themes/silver/graphics/edit.png" name="themes/silver/graphics/edit.png" />
+   <install as="gollem/themes/silver/graphics/favicon.ico" name="themes/silver/graphics/favicon.ico" />
    <install as="gollem/themes/silver/graphics/folder.png" name="themes/silver/graphics/folder.png" />
    <install as="gollem/themes/silver/graphics/folder_create.png" name="themes/silver/graphics/folder_create.png" />
    <install as="gollem/themes/silver/graphics/folder_goto.png" name="themes/silver/graphics/folder_goto.png" />
    <install as="gollem/themes/silver/graphics/folder_home.png" name="themes/silver/graphics/folder_home.png" />
    <install as="gollem/themes/silver/graphics/folder_symlink.png" name="themes/silver/graphics/folder_symlink.png" />
    <install as="gollem/themes/silver/graphics/gollem.png" name="themes/silver/graphics/gollem.png" />
+   <install as="gollem/themes/silver/graphics/reload.png" name="themes/silver/graphics/reload.png" />
   </filelist>
  </phprelease>
  <changelog>
@@ -651,12 +667,88 @@
     <release>2.0.0RC1</release>
     <api>2.0.0RC1</api></version>
    <stability>
-    <release>alpha</release>
-    <api>alpha</api></stability>
-   <date>2011-09-30</date>
+    <release>beta</release>
+    <api>beta</api></stability>
+   <date>2011-10-11</date>
    <license uri="http://www.horde.org/licenses/gpl">GPL-2.0</license>
    <notes>
+* [jan] Fix usage of createhome parameter (Bug #10592).
+* [mms] Fix display of &apos;columnselect&apos; preference (Bug #10628).
 * [jan] Don&apos;t require login for login-less VFS backends.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>2.0.0RC2</release>
+    <api>2.0.0RC2</api></version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api></stability>
+   <date>2011-10-18</date>
+   <license uri="http://www.horde.org/licenses/gpl">GPL-2.0</license>
+   <notes>
+* [jan] Fix corruption of downloaded files (Bug #8481).
+* [jan] Catch if VFS backend doesn&apos;t support size() (Bug #10637).
+* [mms] Fix editing text files.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>2.0.0</release>
+    <api>2.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-10-27</date>
+   <license uri="http://www.horde.org/licenses/gpl">GPL-2.0</license>
+   <notes>
+* [jan] Update Slovak translation.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>2.0.1</release>
+    <api>2.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2011-11-22</date>
+   <license uri="http://www.horde.org/licenses/gpl">GPL-2.0</license>
+   <notes>
+* [mms] Fix selectlist widget when initial cacheID was not given (Bug #10781).
+* [mms] Fix icon display of files in selectlist widget.
+* [jan] Fix downloading of file types without a MIME viewer (Bug #10709).
+* [jan] Fix autocreating of home folders (Bug #10690).
+* [jan] Fix JavaScript for Actions drop down list (Bug #10695).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>2.0.2</release>
+    <api>2.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-04-11</date>
+   <license uri="http://www.horde.org/licenses/gpl">GPL-2.0</license>
+   <notes>
+* [jan] Don&apos;t show user name and password fields on login page if not required.
+* [jan] Display &apos;loginparams&apos; on login screen (Bug #11088).
+* [jan] Fix removing filter (Bug #11043).
+* [jan] Update Japanese translation (Hiromi Kimura &lt;hiromi@tac.tsukuba.ac.jp&gt;).
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>2.0.3</release>
+    <api>2.0.0</api></version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api></stability>
+   <date>2012-04-11</date>
+   <license uri="http://www.horde.org/licenses/gpl">GPL-2.0</license>
+   <notes>
+* 
    </notes>
   </release>
  </changelog>

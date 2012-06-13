@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright 2007 Maintainable Software, LLC
- * Copyright 2008-2011 Horde LLC (http://www.horde.org/)
+ * Copyright 2008-2012 Horde LLC (http://www.horde.org/)
  *
  * @author     Mike Naberezny <mike@maintainable.com>
  * @author     Derek DeVries <derek@maintainable.com>
@@ -801,6 +801,20 @@ class Horde_Db_Adapter_Pdo_PgsqlTest extends PHPUnit_Framework_TestCase
 
         $afterChange = $this->_getColumn('sports', 'is_college');
         $this->assertEquals('character varying(255)', $afterChange->getSqlType());
+
+        $table = $this->_conn->createTable('text_to_binary');
+        $table->column('data', 'text');
+        $table->end();
+        $this->_conn->insert('INSERT INTO text_to_binary (data) VALUES (?)',
+                             array("foobar"));
+
+        $this->_conn->changeColumn('text_to_binary', 'data', 'binary');
+
+        $afterChange = $this->_getColumn('text_to_binary', 'data');
+        $this->assertEquals('bytea', $afterChange->getSqlType());
+        $this->assertEquals(
+            "foobar",
+            stream_get_contents($this->_conn->selectValue('SELECT data FROM text_to_binary')));
     }
 
     public function testChangeColumnLimit()
@@ -1180,6 +1194,35 @@ class Horde_Db_Adapter_Pdo_PgsqlTest extends PHPUnit_Framework_TestCase
         $this->assertEquals("SELECT * FROM documents ORDER BY name DESC", $result);
     }
 
+    public function testInterval()
+    {
+        $this->assertEquals('INTERVAL \'1 DAY \'',
+                            $this->_conn->interval('1 DAY', ''));
+    }
+
+    public function testModifyDate()
+    {
+        $modifiedDate = $this->_conn->modifyDate('mystart', '+', 1, 'DAY');
+        $this->assertEquals('mystart + INTERVAL \'1 DAY\'', $modifiedDate);
+
+        $t = $this->_conn->createTable('dates');
+        $t->column('mystart', 'datetime');
+        $t->column('myend', 'datetime');
+        $t->end();
+        $this->_conn->insert(
+            'INSERT INTO dates (mystart, myend) VALUES (?, ?)',
+            array(
+                '2011-12-10 00:00:00',
+                '2011-12-11 00:00:00'
+            )
+        );
+        $this->assertEquals(
+            1,
+            $this->_conn->selectValue('SELECT COUNT(*) FROM dates WHERE '
+                                      . $modifiedDate . ' = myend')
+        );
+    }
+
     public function testBuildClause()
     {
         $this->assertEquals(
@@ -1311,12 +1354,14 @@ class Horde_Db_Adapter_Pdo_PgsqlTest extends PHPUnit_Framework_TestCase
         $tables = array(
             'binary_testings',
             'cache_table',
+            'dates',
             'my_sports',
             'octopi',
             'pk_tests',
             'schema_info',
             'sports',
             'testings',
+            'text_to_binary',
             'unit_tests',
             'users',
         );
